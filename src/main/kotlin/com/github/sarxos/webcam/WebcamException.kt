@@ -1,19 +1,11 @@
-package com.github.sarxos.webcam;
+package com.github.sarxos.webcam
 
-public class WebcamException extends RuntimeException {
+open class WebcamException : RuntimeException {
+    constructor(message: String?) : super(message) {}
+    constructor(message: String?, cause: Throwable?) : super(message, cause) {}
+    constructor(cause: Throwable?) : super(cause) {}
 
-	private static final long serialVersionUID = 4305046981807594375L;
-
-	public WebcamException(String message) {
-		super(message);
-	}
-
-	public WebcamException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
-	public WebcamException(Throwable cause) {
-		super(cause);
-	}
-
+    companion object {
+        private const val serialVersionUID = 4305046981807594375L
+    }
 }
