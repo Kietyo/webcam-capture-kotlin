@@ -889,7 +889,7 @@ class Webcam(device: WebcamDevice?) {
             requireNotNull(tunit) { "Time unit cannot be null!" }
             val discovery = discoveryService!!
             val webcams = discovery.getWebcams(timeout, tunit)
-            if (!discovery.isRunning) {
+            if (!discovery.isRunning()) {
                 discovery.start()
             }
             return webcams
@@ -960,9 +960,9 @@ class Webcam(device: WebcamDevice?) {
          */
         @JvmStatic
 		@Synchronized
-        fun getDriver(): WebcamDriver? {
+        fun getDriver(): WebcamDriver {
             if (driver != null) {
-                return driver
+                return driver!!
             }
             if (driver == null) {
                 driver = WebcamDriverUtils.findDriver(DRIVERS_LIST, DRIVERS_CLASS_LIST)
@@ -971,7 +971,7 @@ class Webcam(device: WebcamDevice?) {
                 driver = WebcamDefaultDriver()
             }
             LOG.info("{} capture driver will be used", driver!!.javaClass.simpleName)
-            return driver
+            return driver!!
         }
 
         /**

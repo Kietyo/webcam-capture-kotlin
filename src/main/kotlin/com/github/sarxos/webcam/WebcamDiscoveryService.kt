@@ -8,7 +8,7 @@ import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 
-class WebcamDiscoveryService protected constructor(driver: WebcamDriver?) : Runnable {
+class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
     private class WebcamsDiscovery(private val driver: WebcamDriver) : Callable<List<Webcam>>, ThreadFactory {
         @Throws(Exception::class)
         override fun call(): List<Webcam> {
@@ -23,20 +23,13 @@ class WebcamDiscoveryService protected constructor(driver: WebcamDriver?) : Runn
         }
     }
 
-    private val driver: WebcamDriver
-    private val support: WebcamDiscoverySupport?
+    private val support: WebcamDiscoverySupport? = (if (driver is WebcamDiscoverySupport) driver else null)
 
     @Volatile
     private var webcams: MutableList<Webcam>? = null
     private val running = AtomicBoolean(false)
     private val enabled = AtomicBoolean(true)
     private var runner: Thread? = null
-
-    init {
-        requireNotNull(driver) { "Driver cannot be null!" }
-        this.driver = driver
-        support = (if (driver is WebcamDiscoverySupport) driver else null)
-    }
 
     @Throws(TimeoutException::class)
     fun getWebcams(timeout: Long, tunit: TimeUnit?): List<Webcam> {
@@ -262,7 +255,7 @@ class WebcamDiscoveryService protected constructor(driver: WebcamDriver?) : Runn
     /**
      * Cleanup.
      */
-    protected fun shutdown() {
+    fun shutdown() {
         stop()
         if (webcams == null) return
 
