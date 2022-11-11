@@ -5,8 +5,8 @@ plugins {
     application
 }
 
-group = "com.kietyo"
-version = "1.0-SNAPSHOT"
+group = "com.github.sarxos.webcam"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -27,6 +27,6 @@ tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-application {
-    mainClass.set("MainKt")
-}
+//application {
+//    mainClass.set("MainKt")
+//}
