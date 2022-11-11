@@ -58,8 +58,8 @@ class WebcamDefaultDriver : WebcamDriver, WebcamDiscoverySupport {
 
         override fun handle() {
             devices = ArrayList()
-            val pointer = grabber!!.videoDevices
-            val list = pointer.get()
+            val pointer = grabber!!.videoDevices!!
+            val list = pointer.get()!!
             for (device in list.asArrayList()) {
                 devices.add(WebcamDefaultDevice(device))
             }

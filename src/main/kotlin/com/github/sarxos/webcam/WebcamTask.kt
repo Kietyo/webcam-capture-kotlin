@@ -4,7 +4,7 @@ import com.github.sarxos.webcam.WebcamProcessor.ProcessorThread
 
 abstract class WebcamTask(threadSafe: Boolean, val device: WebcamDevice?) {
     private var doSync = !threadSafe
-    private var processor: WebcamProcessor = WebcamProcessor.getInstance()
+    private var processor: WebcamProcessor = WebcamProcessor.instance
     var throwable: Throwable? = null
 
     constructor(driver: WebcamDriver, device: WebcamDevice?) : this(driver.isThreadSafe, device) {}

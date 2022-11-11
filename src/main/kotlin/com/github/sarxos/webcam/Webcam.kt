@@ -1122,7 +1122,7 @@ class Webcam(device: WebcamDevice?) {
             discovery?.stop()
 
             // stop processor
-            WebcamProcessor.getInstance().shutdown()
+            WebcamProcessor.instance.shutdown()
         }
 
         /**
