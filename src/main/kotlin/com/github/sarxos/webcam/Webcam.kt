@@ -64,7 +64,7 @@ class Webcam(device: WebcamDevice?) {
     private inner class NotificationThreadFactory : ThreadFactory {
         override fun newThread(r: Runnable): Thread {
             val t = Thread(r, String.format("notificator-[%s]", name))
-            t.uncaughtExceptionHandler = WebcamExceptionHandler.getInstance()
+            t.uncaughtExceptionHandler = WebcamExceptionHandler.instance
             t.isDaemon = true
             return t
         }

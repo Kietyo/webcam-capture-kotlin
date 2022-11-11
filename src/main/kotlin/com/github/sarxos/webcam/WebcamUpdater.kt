@@ -59,7 +59,7 @@ class WebcamUpdater(webcam: Webcam, delayCalculator: DelayCalculator?) : Runnabl
     private class UpdaterThreadFactory : ThreadFactory {
         override fun newThread(r: Runnable): Thread {
             val t = Thread(r, String.format("webcam-updater-thread-%d", number.incrementAndGet()))
-            t.uncaughtExceptionHandler = WebcamExceptionHandler.getInstance()
+            t.uncaughtExceptionHandler = WebcamExceptionHandler.instance
             t.isDaemon = true
             return t
         }

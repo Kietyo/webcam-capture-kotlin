@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicReference
  * @author Bartosz Firyn (SarXos)
  */
 class WebcamDefaultDriver : WebcamDriver, WebcamDiscoverySupport {
-    private class WebcamNewGrabberTask(driver: WebcamDriver?) : WebcamTask(driver, null) {
+    private class WebcamNewGrabberTask(driver: WebcamDriver) : WebcamTask(driver, null) {
         private val grabber = AtomicReference<OpenIMAJGrabber>()
         fun newGrabber(): OpenIMAJGrabber? {
             try {
@@ -32,7 +32,7 @@ class WebcamDefaultDriver : WebcamDriver, WebcamDiscoverySupport {
         }
     }
 
-    private class GetDevicesTask(driver: WebcamDriver?) : WebcamTask(driver, null) {
+    private class GetDevicesTask(driver: WebcamDriver) : WebcamTask(driver, null) {
         @Volatile
         private var devices: MutableList<WebcamDevice> = mutableListOf()
 
@@ -66,35 +66,31 @@ class WebcamDefaultDriver : WebcamDriver, WebcamDiscoverySupport {
         }
     }
 
-    override fun getDevices(): List<WebcamDevice> {
-        LOG.debug("Searching devices")
-        if (grabber == null) {
-            val task = WebcamNewGrabberTask(this)
-            grabber = task.newGrabber()
+    override val devices: List<WebcamDevice>
+        get() = run {
+            LOG.debug("Searching devices")
             if (grabber == null) {
-                return emptyList()
+                val task = WebcamNewGrabberTask(this)
+                grabber = task.newGrabber()
+                if (grabber == null) {
+                    return emptyList()
+                }
             }
-        }
-        val devices = GetDevicesTask(this).getDevices(grabber)!!
-        if (LOG.isDebugEnabled) {
-            for (device in devices) {
-                LOG.debug("Found device {}", device.name)
+            val devices = GetDevicesTask(this).getDevices(grabber)!!
+            if (LOG.isDebugEnabled) {
+                for (device in devices) {
+                    LOG.debug("Found device {}", device.name)
+                }
             }
+            return devices
         }
-        return devices
-    }
 
-    override fun getScanInterval(): Long {
-        return WebcamDiscoverySupport.DEFAULT_SCAN_INTERVAL
-    }
+    override val scanInterval: Long = WebcamDiscoverySupport.DEFAULT_SCAN_INTERVAL
 
-    override fun isScanPossible(): Boolean {
-        return true
-    }
+    override val isScanPossible: Boolean = true
 
-    override fun isThreadSafe(): Boolean {
-        return false
-    }
+    override val isThreadSafe: Boolean
+        get() = false
 
     companion object {
         init {

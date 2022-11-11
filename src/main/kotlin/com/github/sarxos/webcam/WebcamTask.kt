@@ -1,62 +1,36 @@
-package com.github.sarxos.webcam;
+package com.github.sarxos.webcam
 
+import com.github.sarxos.webcam.WebcamProcessor.ProcessorThread
 
+abstract class WebcamTask(threadSafe: Boolean, val device: WebcamDevice?) {
+    private var doSync = !threadSafe
+    private var processor: WebcamProcessor = WebcamProcessor.getInstance()
+    var throwable: Throwable? = null
 
-public abstract class WebcamTask {
+    constructor(driver: WebcamDriver, device: WebcamDevice?) : this(driver.isThreadSafe, device) {}
+    constructor(device: WebcamDevice) : this(false, device) {}
 
-	private boolean doSync = true;
-	private WebcamProcessor processor = null;
-	private WebcamDevice device = null;
-	private Throwable throwable = null;
+    /**
+     * Process task by processor thread.
+     *
+     * @throws InterruptedException when thread has been interrupted
+     */
+    @Throws(InterruptedException::class)
+    fun process() {
+        val alreadyInSync = Thread.currentThread() is ProcessorThread
+        if (alreadyInSync) {
+            handle()
+        } else {
+            if (doSync) {
+                if (processor == null) {
+                    throw RuntimeException("Driver should be synchronized, but processor is null")
+                }
+                processor.process(this)
+            } else {
+                handle()
+            }
+        }
+    }
 
-	public WebcamTask(boolean threadSafe, WebcamDevice device) {
-		this.doSync = !threadSafe;
-		this.device = device;
-		this.processor = WebcamProcessor.getInstance();
-	}
-
-	public WebcamTask(WebcamDriver driver, WebcamDevice device) {
-		this(driver.isThreadSafe(), device);
-	}
-
-	public WebcamTask(WebcamDevice device) {
-		this(false, device);
-	}
-
-	public WebcamDevice getDevice() {
-		return device;
-	}
-
-	/**
-	 * Process task by processor thread.
-	 * 
-	 * @throws InterruptedException when thread has been interrupted
-	 */
-	public void process() throws InterruptedException {
-
-		boolean alreadyInSync = Thread.currentThread() instanceof WebcamProcessor.ProcessorThread;
-
-		if (alreadyInSync) {
-			handle();
-		} else {
-			if (doSync) {
-				if (processor == null) {
-					throw new RuntimeException("Driver should be synchronized, but processor is null");
-				}
-				processor.process(this);
-			} else {
-				handle();
-			}
-		}
-	}
-
-	public Throwable getThrowable() {
-		return throwable;
-	}
-
-	public void setThrowable(Throwable t) {
-		this.throwable = t;
-	}
-
-	protected abstract void handle();
+    abstract fun handle()
 }

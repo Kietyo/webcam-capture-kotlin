@@ -18,7 +18,7 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
         override fun newThread(r: Runnable): Thread {
             val t = Thread(r, "webcam-discovery-service")
             t.isDaemon = true
-            t.uncaughtExceptionHandler = WebcamExceptionHandler.getInstance()
+            t.uncaughtExceptionHandler = WebcamExceptionHandler.instance
             return t
         }
     }
@@ -227,7 +227,7 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
 
         // start discovery service runner
         runner = Thread(this, "webcam-discovery-service")
-        runner!!.uncaughtExceptionHandler = WebcamExceptionHandler.getInstance()
+        runner!!.uncaughtExceptionHandler = WebcamExceptionHandler.instance
         runner!!.isDaemon = true
         runner!!.start()
     }
