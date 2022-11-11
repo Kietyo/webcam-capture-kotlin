@@ -545,7 +545,7 @@ class Webcam(device: WebcamDevice?) {
             var t1: Long = 0
             var t2: Long = 0
             return if (asynchronous) {
-                updater!!.image
+                updater!!.getImage()
             } else {
 
                 // get image
@@ -575,7 +575,7 @@ class Webcam(device: WebcamDevice?) {
         } else true
     val fPS: Double
         get() = if (asynchronous) {
-            updater!!.fps
+            updater!!.fPS
         } else {
             fps
         }// some devices can support direct image buffers, and for those call
