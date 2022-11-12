@@ -1,98 +1,72 @@
-package com.github.sarxos.webcam.ds.test;
+package com.github.sarxos.webcam.ds.test
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.util.concurrent.atomic.AtomicInteger;
+import com.github.sarxos.webcam.WebcamDevice
+import com.github.sarxos.webcam.WebcamException
+import java.awt.Color
+import java.awt.Dimension
+import java.awt.image.BufferedImage
+import java.util.concurrent.atomic.AtomicInteger
 
-import com.github.sarxos.webcam.WebcamDevice;
-import com.github.sarxos.webcam.WebcamException;
+class DummyDevice(override val resolutions: Array<Dimension> = RESOLUTIONS) : WebcamDevice {
+    override val name = DummyDevice::class.java.simpleName + "-" + INSTANCE_NUM.incrementAndGet()
+    private var size = resolutions[0]
+    override var isOpen = false
+        private set
 
+    override fun getResolution(): Dimension {
+        return size
+    }
 
-public class DummyDevice implements WebcamDevice {
+    override fun setResolution(size: Dimension) {
+        this.size = size
+    }
 
-	private static final AtomicInteger INSTANCE_NUM = new AtomicInteger(0);
-	private static final Dimension[] DIMENSIONS = new Dimension[] {
-		new Dimension(300, 200),
-		new Dimension(400, 300),
-	};
+    private var mx = 1
+    private var my = 1
+    private val r = 10
+    private var x = r
+    private var y = r
+    override val image: BufferedImage
+        get() {
+            if (!isOpen) {
+                throw WebcamException("Not open")
+            }
+            val bi = BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB)
+            val g2 = bi.createGraphics()
+            g2.color = Color.RED
+            g2.fillRect(0, 0, size.width, size.height)
+            g2.color = Color.BLACK
+            g2.drawString(name, 10, 20)
+            g2.color = Color.WHITE
+            g2.drawOval(mx.let { x += it; x }, my.let { y += it; y }, r, r)
+            g2.dispose()
+            bi.flush()
+            if (x <= 0 + r || x >= size.width - r) {
+                mx = -mx
+            }
+            if (y <= 0 + r || y >= size.height - r) {
+                my = -my
+            }
+            return bi
+        }
 
-	private String name = DummyDevice.class.getSimpleName() + "-" + INSTANCE_NUM.incrementAndGet();
-	private Dimension size = DIMENSIONS[0];
-	private boolean open = false;
+    override fun open() {
+        isOpen = true
+    }
 
-	@Override
-	public String getName() {
-		return name;
-	}
+    override fun close() {
+        isOpen = false
+    }
 
-	@Override
-	public Dimension[] getResolutions() {
-		return DIMENSIONS;
-	}
+    override fun dispose() {
+        // do nothing
+    }
 
-	@Override
-	public Dimension getResolution() {
-		return size;
-	}
-
-	@Override
-	public void setResolution(Dimension size) {
-		this.size = size;
-	}
-
-	private int mx = 1;
-	private int my = 1;
-	private int r = 10;
-	private int x = r;
-	private int y = r;
-
-	@Override
-	public BufferedImage getImage() {
-
-		if (!open) {
-			throw new WebcamException("Not open");
-		}
-
-		final BufferedImage bi = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_RGB);
-		final Graphics2D g2 = bi.createGraphics();
-		g2.setColor(Color.RED);
-		g2.fillRect(0, 0, size.width, size.height);
-		g2.setColor(Color.BLACK);
-		g2.drawString(getName(), 10, 20);
-		g2.setColor(Color.WHITE);
-		g2.drawOval(x += mx, y += my, r, r);
-		g2.dispose();
-		bi.flush();
-
-		if (x <= 0 + r || x >= size.width - r) {
-			mx = -mx;
-		}
-		if (y <= 0 + r || y >= size.height - r) {
-			my = -my;
-		}
-
-		return bi;
-	}
-
-	@Override
-	public void open() {
-		open = true;
-	}
-
-	@Override
-	public void close() {
-		open = false;
-	}
-
-	@Override
-	public boolean isOpen() {
-		return open;
-	}
-
-	@Override
-	public void dispose() {
-		// do nothing
-	}
+    companion object {
+        private val INSTANCE_NUM = AtomicInteger(0)
+        val RESOLUTIONS = arrayOf(
+            Dimension(300, 200),
+            Dimension(400, 300)
+        )
+    }
 }

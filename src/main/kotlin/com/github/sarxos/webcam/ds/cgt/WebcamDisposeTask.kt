@@ -1,27 +1,21 @@
-package com.github.sarxos.webcam.ds.cgt;
+package com.github.sarxos.webcam.ds.cgt
 
-import com.github.sarxos.webcam.WebcamDevice;
-import com.github.sarxos.webcam.WebcamDriver;
-import com.github.sarxos.webcam.WebcamTask;
-
+import com.github.sarxos.webcam.WebcamDevice
+import com.github.sarxos.webcam.WebcamDriver
+import com.github.sarxos.webcam.WebcamTask
 
 /**
  * Dispose webcam device.
- * 
+ *
  * @author Bartosz Firyn (sarxos)
  */
-public class WebcamDisposeTask extends WebcamTask {
+class WebcamDisposeTask(driver: WebcamDriver?, device: WebcamDevice?) : WebcamTask(driver!!, device) {
+    @Throws(InterruptedException::class)
+    fun dispose() {
+        process()
+    }
 
-	public WebcamDisposeTask(WebcamDriver driver, WebcamDevice device) {
-		super(driver, device);
-	}
-
-	public void dispose() throws InterruptedException {
-		process();
-	}
-
-	@Override
-	protected void handle() {
-		getDevice().dispose();
-	}
+    override fun handle() {
+        device!!.dispose()
+    }
 }

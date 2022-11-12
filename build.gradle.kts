@@ -24,7 +24,7 @@ dependencies {
 //    testImplementation("org.easymock:easymock:5.0.1")
 //    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("io.mockk:mockk:1.9.3")
-    testImplementation("junit:junit:4.13.1")
+//    testImplementation("junit:junit:4.13.1")
 }
 
 tasks.test {

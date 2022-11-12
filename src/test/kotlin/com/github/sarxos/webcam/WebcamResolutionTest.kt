@@ -1,62 +1,60 @@
-package com.github.sarxos.webcam;
+package com.github.sarxos.webcam
 
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
+import org.assertj.core.api.Assertions
+import org.junit.jupiter.api.Test
 
+class WebcamResolutionTest {
+    @Test
+    fun test_getSize() {
+        Assertions
+            .assertThat(WebcamResolution.VGA.size)
+            .isNotNull
+        Assertions
+            .assertThat(WebcamResolution.VGA.size.getWidth())
+            .isEqualTo(640.0)
+        Assertions
+            .assertThat(WebcamResolution.VGA.size.getHeight())
+            .isEqualTo(480.0)
+    }
 
-public class WebcamResolutionTest {
+    @Test
+    fun test_getPixelCount() {
+        Assertions
+            .assertThat(WebcamResolution.VGA.pixelsCount)
+            .isEqualTo(640 * 480)
+    }
 
-	@Test
-	public void test_getSize() {
-		Assertions
-			.assertThat(WebcamResolution.VGA.getSize())
-			.isNotNull();
-		Assertions
-			.assertThat(WebcamResolution.VGA.getSize().getWidth())
-			.isEqualTo(640);
-		Assertions
-			.assertThat(WebcamResolution.VGA.getSize().getHeight())
-			.isEqualTo(480);
-	}
+    @Test
+    fun test_getAspectRatio() {
+        Assertions
+            .assertThat(WebcamResolution.VGA.aspectRatio)
+            .isNotNull
+        Assertions
+            .assertThat(WebcamResolution.VGA.aspectRatio.getWidth())
+            .isEqualTo(4.0)
+        Assertions
+            .assertThat(WebcamResolution.VGA.aspectRatio.getHeight())
+            .isEqualTo(3.0)
+    }
 
-	@Test
-	public void test_getPixelCount() {
-		Assertions
-			.assertThat(WebcamResolution.VGA.getPixelsCount())
-			.isEqualTo(640 * 480);
-	}
+    @Test
+    fun test_getWidth() {
+        Assertions
+            .assertThat(WebcamResolution.VGA.width)
+            .isEqualTo(640)
+    }
 
-	@Test
-	public void test_getAspectRatio() {
-		Assertions
-			.assertThat(WebcamResolution.VGA.getAspectRatio())
-			.isNotNull();
-		Assertions
-			.assertThat(WebcamResolution.VGA.getAspectRatio().getWidth())
-			.isEqualTo(4);
-		Assertions
-			.assertThat(WebcamResolution.VGA.getAspectRatio().getHeight())
-			.isEqualTo(3);
-	}
+    @Test
+    fun test_getHeight() {
+        Assertions
+            .assertThat(WebcamResolution.VGA.height)
+            .isEqualTo(480)
+    }
 
-	@Test
-	public void test_getWidth() {
-		Assertions
-			.assertThat(WebcamResolution.VGA.getWidth())
-			.isEqualTo(640);
-	}
-
-	@Test
-	public void test_getHeight() {
-		Assertions
-			.assertThat(WebcamResolution.VGA.getHeight())
-			.isEqualTo(480);
-	}
-
-	@Test
-	public void test_toString() {
-		Assertions
-			.assertThat(WebcamResolution.VGA.toString())
-			.isEqualTo("VGA 640x480 (4:3)");
-	}
+    @Test
+    fun test_toString() {
+        Assertions
+            .assertThat(WebcamResolution.VGA.toString())
+            .isEqualTo("VGA 640x480 (4:3)")
+    }
 }

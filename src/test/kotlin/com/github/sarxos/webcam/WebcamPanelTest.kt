@@ -3,7 +3,7 @@ package com.github.sarxos.webcam
 import com.github.sarxos.webcam.WebcamPanel.DrawMode
 import com.github.sarxos.webcam.ds.test.DummyDriver
 import org.assertj.core.api.Assertions
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.awt.Dimension
 
 class WebcamPanelTest {
