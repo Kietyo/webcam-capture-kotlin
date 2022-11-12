@@ -1,18 +1,11 @@
-package com.github.sarxos.webcam;
+package com.github.sarxos.webcam
 
-public class WebcamLockException extends WebcamException {
+class WebcamLockException : WebcamException {
+    constructor(message: String?, cause: Throwable?) : super(message, cause) {}
+    constructor(message: String?) : super(message) {}
+    constructor(cause: Throwable?) : super(cause) {}
 
-	private static final long serialVersionUID = 1L;
-
-	public WebcamLockException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
-	public WebcamLockException(String message) {
-		super(message);
-	}
-
-	public WebcamLockException(Throwable cause) {
-		super(cause);
-	}
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

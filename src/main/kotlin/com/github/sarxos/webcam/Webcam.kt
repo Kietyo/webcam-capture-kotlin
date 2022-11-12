@@ -443,7 +443,7 @@ class Webcam(device: WebcamDevice?) {
      * @see Webcam.getViewSizes
      */
     var viewSize: Dimension?
-        get() = device!!.resolution
+        get() = device!!.getResolution()
         set(size) {
             requireNotNull(size) { "Resolution cannot be null!" }
             check(!open!!.get()) { "Cannot change resolution when webcam is open, please close it first" }
@@ -487,7 +487,7 @@ class Webcam(device: WebcamDevice?) {
                 throw IllegalArgumentException(sb.toString())
             }
             LOG.debug("Setting new resolution {}x{}", size.width, size.height)
-            device!!.resolution = size
+            device!!.setResolution(size)
         }
 
     /**
@@ -496,7 +496,7 @@ class Webcam(device: WebcamDevice?) {
      * @return Array of supported dimensions
      */
     val viewSizes: Array<Dimension>
-        get() = device!!.resolutions
+        get() = device!!.resolutions!!
 
     /**
      * Set custom resolution. If you are using this method you have to make sure that your webcam
@@ -736,9 +736,7 @@ class Webcam(device: WebcamDevice?) {
      * @return True if listener has been added, false if it was already there
      * @throws IllegalArgumentException when argument is null
      */
-    fun addWebcamListener(l: WebcamListener?): Boolean {
-        requireNotNull(l) { "Webcam listener cannot be null!" }
-        assert(listeners != null)
+    fun addWebcamListener(l: WebcamListener): Boolean {
         return listeners!!.add(l)
     }
 
