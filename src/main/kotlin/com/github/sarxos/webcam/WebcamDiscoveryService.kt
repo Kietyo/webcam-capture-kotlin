@@ -7,6 +7,7 @@ import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
     private class WebcamsDiscovery(private val driver: WebcamDriver) : Callable<List<Webcam>>, ThreadFactory {
@@ -163,15 +164,24 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
         val monitor = ReentrantLock()
         val condition = monitor.newCondition()
         do {
-            synchronized(monitor) {
+            monitor.withLock {
                 try {
                     condition.await(support.scanInterval, TimeUnit.MILLISECONDS)
                 } catch (e: InterruptedException) {
-                    return@synchronized
+                    return
                 } catch (e: Exception) {
                     throw RuntimeException("Problem waiting on monitor", e)
                 }
             }
+//            synchronized(monitor) {
+//                try {
+//                    condition.await(support.scanInterval, TimeUnit.MILLISECONDS)
+//                } catch (e: InterruptedException) {
+//                    return@synchronized
+//                } catch (e: Exception) {
+//                    throw RuntimeException("Problem waiting on monitor", e)
+//                }
+//            }
             scan()
         } while (running.get())
         LOG.debug("Webcam discovery service loop has been stopped")

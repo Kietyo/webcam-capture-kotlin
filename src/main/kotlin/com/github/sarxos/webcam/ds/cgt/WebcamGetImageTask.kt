@@ -1,45 +1,44 @@
-package com.github.sarxos.webcam.ds.cgt;
+package com.github.sarxos.webcam.ds.cgt
 
-import java.awt.image.BufferedImage;
+import com.github.sarxos.webcam.WebcamDevice
+import com.github.sarxos.webcam.WebcamDriver
+import com.github.sarxos.webcam.WebcamTask
+import org.slf4j.LoggerFactory
+import java.awt.image.BufferedImage
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+class WebcamGetImageTask(driver: WebcamDriver?, device: WebcamDevice?) : WebcamTask(driver!!, device) {
+    @Volatile
+    var image: BufferedImage? = null
+        get() {
+            try {
+                process()
+            } catch (e: InterruptedException) {
+                LOG.debug("Interrupted exception", e)
+                return null
+            }
+            return field
+        }
 
-import com.github.sarxos.webcam.WebcamDevice;
-import com.github.sarxos.webcam.WebcamDriver;
-import com.github.sarxos.webcam.WebcamTask;
+//    @JvmName("getImage1")
+//    fun getImage(): BufferedImage? {
+//        try {
+//            process()
+//        } catch (e: InterruptedException) {
+//            LOG.debug("Interrupted exception", e)
+//            return null
+//        }
+//        return image
+//    }
 
+    override fun handle() {
+        val device = device!!
+        if (!device.isOpen) {
+            return
+        }
+        image = device.image
+    }
 
-public class WebcamGetImageTask extends WebcamTask {
-
-	private static final Logger LOG = LoggerFactory.getLogger(WebcamGetImageTask.class);
-
-	private volatile BufferedImage image = null;
-
-	public WebcamGetImageTask(WebcamDriver driver, WebcamDevice device) {
-		super(driver, device);
-	}
-
-	public BufferedImage getImage() {
-
-		try {
-			process();
-		} catch (InterruptedException e) {
-			LOG.debug("Interrupted exception", e);
-			return null;
-		}
-
-		return image;
-	}
-
-	@Override
-	protected void handle() {
-
-		WebcamDevice device = getDevice();
-		if (!device.isOpen()) {
-			return;
-		}
-
-		image = device.getImage();
-	}
+    companion object {
+        private val LOG = LoggerFactory.getLogger(WebcamGetImageTask::class.java)
+    }
 }
