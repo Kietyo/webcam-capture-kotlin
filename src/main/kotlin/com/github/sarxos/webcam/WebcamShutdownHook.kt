@@ -1,46 +1,42 @@
-package com.github.sarxos.webcam;
+package com.github.sarxos.webcam
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.slf4j.LoggerFactory
 
 /**
  * Shutdown hook to be executed when JVM exits gracefully. This class intention
  * is to be used internally only.
- * 
+ *
  * @author Bartosz Firyn (sarxos)
  */
-public final class WebcamShutdownHook extends Thread {
+class WebcamShutdownHook constructor(
+    /**
+     * Webcam instance to be disposed / closed.
+     */
+    private val webcam: Webcam?) : Thread("shutdown-hook-" + ++number) {
 
-	/**
-	 * Logger.
-	 */
-	private static final Logger LOG = LoggerFactory.getLogger(WebcamShutdownHook.class);
+    /**
+     * Create new shutdown hook instance.
+     *
+     * @param webcam the webcam for which hook is intended
+     */
+    init {
+        uncaughtExceptionHandler = WebcamExceptionHandler.instance
+    }
 
-	/**
-	 * Number of shutdown hook instance.
-	 */
-	private static int number = 0;
+    override fun run() {
+        LOG.info("Automatic {} deallocation", webcam!!.name)
+        webcam.dispose()
+    }
 
-	/**
-	 * Webcam instance to be disposed / closed.
-	 */
-	private Webcam webcam = null;
+    companion object {
+        /**
+         * Logger.
+         */
+        private val LOG = LoggerFactory.getLogger(WebcamShutdownHook::class.java)
 
-	/**
-	 * Create new shutdown hook instance.
-	 * 
-	 * @param webcam the webcam for which hook is intended
-	 */
-	protected WebcamShutdownHook(Webcam webcam) {
-		super("shutdown-hook-" + (++number));
-		this.webcam = webcam;
-		this.setUncaughtExceptionHandler(WebcamExceptionHandler.getInstance());
-	}
-
-	@Override
-	public void run() {
-		LOG.info("Automatic {} deallocation", webcam.getName());
-		webcam.dispose();
-	}
+        /**
+         * Number of shutdown hook instance.
+         */
+        private var number = 0
+    }
 }

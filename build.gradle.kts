@@ -18,9 +18,13 @@ dependencies {
 //    implementation("com.nativelibs4java:bridj:0.7.0")
     implementation("com.nativelibs4java:bridj:0.7.0")
     testImplementation(kotlin("test"))
-    testImplementation("org.easymock:easymock:3.2")
-    testImplementation("junit:junit:4.13.1")
+//    testImplementation("junit:junit:4.13.1")
     testImplementation("org.assertj:assertj-core:1.6.1")
+//    testImplementation("org.easymock:easymock:3.2")
+//    testImplementation("org.easymock:easymock:5.0.1")
+//    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+    testImplementation("io.mockk:mockk:1.9.3")
+    testImplementation("junit:junit:4.13.1")
 }
 
 tasks.test {

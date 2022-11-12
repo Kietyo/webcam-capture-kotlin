@@ -1,30 +1,33 @@
 package com.github.sarxos.webcam
 
 import com.github.sarxos.webcam.Webcam
+import io.mockk.MockKAnnotations
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
+import io.mockk.mockk
 import org.assertj.core.api.Assertions
-import org.easymock.EasyMock
-import org.easymock.EasyMockRunner
-import org.easymock.EasyMockSupport
-import org.junit.Before
-import org.junit.Test
+import org.junit.Rule
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith
+
+//import org.junit.Before
+//import org.junit.Test
+//import org.junit.runner.RunWith
 
 /**
  * This test case is to cover [WebcamLock] class.
  *
  * @author Bartosz Firyn (sarxos)
  */
-@RunWith(EasyMockRunner::class)
-class WebcamLockTest : EasyMockSupport() {
+class WebcamLockTest {
+    @MockK
     lateinit var webcam: Webcam
-    @Before
+
+    @BeforeEach
     fun before() {
-        webcam = createNiceMock(Webcam::class.java)
-        EasyMock
-            .expect(webcam.name)
-            .andReturn("test-webcam")
-            .anyTimes()
-        replayAll()
+        MockKAnnotations.init(this)
+        every { webcam.name } returns "test-webcam"
     }
 
     @Test
