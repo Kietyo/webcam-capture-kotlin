@@ -4,6 +4,7 @@ import com.github.sarxos.webcam.Webcam.Companion.getDriver
 import com.github.sarxos.webcam.ds.test.DummyDriver
 import com.github.sarxos.webcam.ds.test.DummyDriver2
 import com.github.sarxos.webcam.ds.test.DummyDriver3
+import org.junit.jupiter.api.assertThrows
 import java.awt.Dimension
 import java.awt.Image
 import kotlin.test.*
@@ -146,6 +147,8 @@ class WebcamStaticsTest {
     @Throws(InstantiationException::class)
     fun test_GetWebcamByNameWithNullArgument() {
         Webcam.setDriver(DummyDriver())
-        Webcam.getWebcamByName(null)
+        assertThrows<IllegalArgumentException> {
+            Webcam.getWebcamByName(null)
+        }
     }
 }
