@@ -411,9 +411,8 @@ class Webcam(device: WebcamDevice?) {
      */
     fun transform(image: BufferedImage?): BufferedImage? {
         if (image != null) {
-            val tr = imageTransformer
-            if (tr != null) {
-                return tr.transform(image)
+            if (imageTransformer != null) {
+                return imageTransformer!!.transform(image)
             }
         }
         return image
