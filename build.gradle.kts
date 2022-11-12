@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.com.intellij.openapi.vfs.StandardFileSystems.jar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -19,6 +18,9 @@ dependencies {
 //    implementation("com.nativelibs4java:bridj:0.7.0")
     implementation("com.nativelibs4java:bridj:0.7.0")
     testImplementation(kotlin("test"))
+    testImplementation("org.easymock:easymock:3.2")
+    testImplementation("junit:junit:4.13.1")
+    testImplementation("org.assertj:assertj-core:1.6.1")
 }
 
 tasks.test {

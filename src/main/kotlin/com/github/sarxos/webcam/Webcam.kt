@@ -263,7 +263,7 @@ class Webcam(device: WebcamDevice?) {
             // notify listeners
             val we = WebcamEvent(WebcamEventType.OPEN, this)
             val wli: Iterator<WebcamListener> = listeners!!.iterator()
-            var l: WebcamListener? = null
+            var l: WebcamListener?
             while (wli.hasNext()) {
                 l = wli.next()
                 try {
@@ -315,7 +315,7 @@ class Webcam(device: WebcamDevice?) {
             // notify listeners
             val we = WebcamEvent(WebcamEventType.CLOSED, this)
             val wli: Iterator<WebcamListener> = listeners!!.iterator()
-            var l: WebcamListener? = null
+            var l: WebcamListener?
             while (wli.hasNext()) {
                 l = wli.next()
                 try {
@@ -375,7 +375,7 @@ class Webcam(device: WebcamDevice?) {
         }
         val we = WebcamEvent(WebcamEventType.DISPOSED, this)
         val wli: Iterator<WebcamListener> = listeners!!.iterator()
-        var l: WebcamListener? = null
+        var l: WebcamListener?
         while (wli.hasNext()) {
             l = wli.next()
             try {
@@ -456,8 +456,6 @@ class Webcam(device: WebcamDevice?) {
             // check if new resolution is valid
             val predefined = viewSizes
             val custom = customViewSizes
-            assert(predefined != null)
-            assert(custom != null)
             var ok = false
             for (d in predefined) {
                 if (d.width == size.width && d.height == size.height) {
@@ -890,24 +888,7 @@ class Webcam(device: WebcamDevice?) {
                 discovery.start()
             }
             return webcams
-        }// this should never happen since user would have to wait 300000000
-        // years for it to occur
-        /**
-         * Will discover and return first webcam available in the system.
-         *
-         * @return Default webcam (first from the list)
-         * @throws WebcamException if something is really wrong
-         * @see Webcam.getWebcams
-         */
-        @get:Throws(WebcamException::class)
-        val default: Webcam?
-            get() = try {
-                getDefault(Long.MAX_VALUE)
-            } catch (e: TimeoutException) {
-                // this should never happen since user would have to wait 300000000
-                // years for it to occur
-                throw RuntimeException(e)
-            }
+        }
 
         /**
          * Will discover and return first webcam available in the system.
@@ -920,7 +901,7 @@ class Webcam(device: WebcamDevice?) {
          * @see Webcam.getWebcams
          */
         @Throws(TimeoutException::class, WebcamException::class)
-        fun getDefault(timeout: Long): Webcam? {
+        fun getDefault(timeout: Long = Long.MAX_VALUE): Webcam? {
             require(timeout >= 0) { String.format("Timeout cannot be negative (%d)", timeout) }
             return getDefault(timeout, TimeUnit.MILLISECONDS)
         }
