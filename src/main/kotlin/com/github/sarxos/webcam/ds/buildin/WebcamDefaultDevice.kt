@@ -43,8 +43,8 @@ open class WebcamDefaultDevice constructor(device: Device) : WebcamDevice, Webca
     private var timeout = 5000
     private var grabber: OpenIMAJGrabber? = null
     private var size: Dimension? = null
-    private var smodel: ComponentSampleModel? = null
-    private var cmodel: ColorModel? = null
+    private lateinit var smodel: ComponentSampleModel
+    private val cmodel: ColorModel = ComponentColorModel(COLOR_SPACE, BITS, false, false, Transparency.OPAQUE, DATA_TYPE)
     private var failOnSizeMismatch = false
     private val disposed = AtomicBoolean(false)
     private val open = AtomicBoolean(false)
@@ -79,7 +79,7 @@ open class WebcamDefaultDevice constructor(device: Device) : WebcamDevice, Webca
     }
 
     override fun setResolution(size: Dimension) {
-        check(!open.get()) { "Cannot change resolution when webcam is open, please close it first" }
+        check(!isOpen) { "Cannot change resolution when webcam is open, please close it first" }
         this.size = size
     }
 
@@ -229,7 +229,6 @@ open class WebcamDefaultDevice constructor(device: Device) : WebcamDevice, Webca
             size = Dimension(w2, h2)
         }
         smodel = ComponentSampleModel(DATA_TYPE, size!!.width, size!!.height, 3, size!!.width * 3, BAND_OFFSETS)
-        cmodel = ComponentColorModel(COLOR_SPACE, BITS, false, false, Transparency.OPAQUE, DATA_TYPE)
 
         // clear device memory buffer
         LOG.debug("Clear memory buffer")
