@@ -1,27 +1,23 @@
-package com.github.sarxos.webcam.util;
+package com.github.sarxos.webcam.util
 
-import java.io.File;
-import java.io.FilenameFilter;
+import java.io.File
+import java.io.FilenameFilter
 
+class NixVideoDevUtils : FilenameFilter {
+    override fun accept(dir: File, name: String): Boolean {
+        return dir.name == "dev" && name.startsWith("video") && name.length > 5 && Character.isDigit(name[5])
+    }
 
-public class NixVideoDevUtils implements FilenameFilter {
-
-	private static final File DEV = new File("/dev");
-
-	@Override
-	public boolean accept(File dir, String name) {
-		return dir.getName().equals("dev") && name.startsWith("video") && (name.length() > 5 && Character.isDigit(name.charAt(5)));
-	}
-
-	public static File[] getVideoFiles() {
-
-		String[] names = DEV.list(new NixVideoDevUtils());
-		File[] files = new File[names.length];
-
-		for (int i = 0; i < names.length; i++) {
-			files[i] = new File(DEV, names[i]);
-		}
-
-		return files;
-	}
+    companion object {
+        private val DEV = File("/dev")
+        val videoFiles: Array<File?>
+            get() {
+                val names = DEV.list(NixVideoDevUtils())
+                val files = arrayOfNulls<File>(names.size)
+                for (i in names.indices) {
+                    files[i] = File(DEV, names[i])
+                }
+                return files
+            }
+    }
 }
