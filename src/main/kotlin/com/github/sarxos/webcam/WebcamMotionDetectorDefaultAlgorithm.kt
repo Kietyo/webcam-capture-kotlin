@@ -62,16 +62,16 @@ class WebcamMotionDetectorDefaultAlgorithm @JvmOverloads constructor(
         return modified
     }
 
-    override fun detect(previousModified: BufferedImage?, currentModified: BufferedImage?): Boolean {
+    override fun detect(previous: BufferedImage?, current: BufferedImage?): Boolean {
         points.clear()
         thresholds.clear()
         var p = 0
         var cogX = 0
         var cogY = 0
-        val w = currentModified!!.width
-        val h = currentModified.height
+        val w = current!!.width
+        val h = current.height
         var j = 0
-        if (previousModified != null) {
+        if (previous != null) {
             for (x in 0 until w) {
                 for (y in 0 until h) {
 
@@ -80,8 +80,8 @@ class WebcamMotionDetectorDefaultAlgorithm @JvmOverloads constructor(
                     if (isInDoNotEngageZone(x, y)) {
                         continue
                     }
-                    val cpx = currentModified.getRGB(x, y)
-                    val ppx = previousModified.getRGB(x, y)
+                    val cpx = current.getRGB(x, y)
+                    val ppx = previous.getRGB(x, y)
                     val pid = combinePixels(cpx, ppx) and 0x000000ff
                     if (pid >= pixelThreshold) {
                         val pp = Point(x, y)
@@ -237,8 +237,8 @@ class WebcamMotionDetectorDefaultAlgorithm @JvmOverloads constructor(
         setAreaThreshold(areaThreshold)
     }
 
-    override fun setDoNotEngageZones(doNotEngageZones: List<Rectangle>) {
-        doNotEnganeZones = doNotEngageZones
+    override fun setDoNotEngageZones(bounds: List<Rectangle>) {
+        doNotEnganeZones = bounds
     }
 
     companion object {

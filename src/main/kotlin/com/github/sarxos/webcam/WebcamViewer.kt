@@ -1,179 +1,127 @@
-package com.github.sarxos.webcam;
+package com.github.sarxos.webcam
 
-import java.awt.BorderLayout;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-import java.lang.Thread.UncaughtExceptionHandler;
-
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.slf4j.LoggerFactory
+import java.awt.BorderLayout
+import java.awt.event.ItemEvent
+import java.awt.event.ItemListener
+import java.awt.event.WindowEvent
+import java.awt.event.WindowListener
+import javax.swing.JFrame
+import javax.swing.SwingUtilities
 
 /**
  * Just a simple webcam viewer.
- * 
+ *
  * @author Bartosz Firyn (SarXos)
  */
-public class WebcamViewer extends JFrame implements Runnable, WebcamListener, WindowListener, UncaughtExceptionHandler, ItemListener {
+class WebcamViewer : JFrame(), Runnable, WebcamListener, WindowListener, Thread.UncaughtExceptionHandler, ItemListener {
+    private var webcam: Webcam? = null
+    private var panel: WebcamPanel? = null
+    private var picker: WebcamPicker? = null
 
-	private static final long serialVersionUID = 1L;
+    init {
+        SwingUtilities.invokeLater(this)
+    }
 
-	private static final Logger LOG = LoggerFactory.getLogger(WebcamViewer.class);
+    override fun run() {
+        title = "Webcam Capture Viewer"
+        defaultCloseOperation = EXIT_ON_CLOSE
+        layout = BorderLayout()
+        addWindowListener(this)
+        picker = WebcamPicker()
+        picker!!.addItemListener(this)
+        webcam = picker!!.selectedWebcam
+        if (webcam == null) {
+            LOG.error("No webcams found")
+            System.exit(1)
+        }
+        webcam!!.viewSize = WebcamResolution.VGA.size
+        webcam!!.addWebcamListener(this@WebcamViewer)
+        panel = WebcamPanel(webcam, false)
+        panel!!.isFPSDisplayed = true
+        add(picker, BorderLayout.NORTH)
+        add(panel, BorderLayout.CENTER)
+        pack()
+        isVisible = true
+        val t: Thread = object : Thread() {
+            override fun run() {
+                panel!!.start()
+            }
+        }
+        t.name = "webcam-viewer-starter"
+        t.isDaemon = true
+        t.uncaughtExceptionHandler = this
+        t.start()
+    }
 
-	private Webcam webcam = null;
-	private WebcamPanel panel = null;
-	private WebcamPicker picker = null;
+    override fun webcamOpen(we: WebcamEvent?) {
+        LOG.info("Webcam open")
+    }
 
-	public WebcamViewer() {
-		SwingUtilities.invokeLater(this);
-	}
+    override fun webcamClosed(we: WebcamEvent?) {
+        LOG.info("Webcam closed")
+    }
 
-	@Override
-	public void run() {
+    override fun webcamDisposed(we: WebcamEvent?) {
+        LOG.info("Webcam disposed")
+    }
 
-		setTitle("Webcam Capture Viewer");
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setLayout(new BorderLayout());
+    override fun webcamImageObtained(we: WebcamEvent?) {
+        // do nothing
+    }
 
-		addWindowListener(this);
+    override fun windowActivated(e: WindowEvent) {}
+    override fun windowClosed(e: WindowEvent) {
+        webcam!!.close()
+    }
 
-		picker = new WebcamPicker();
-		picker.addItemListener(this);
+    override fun windowClosing(e: WindowEvent) {}
+    override fun windowOpened(e: WindowEvent) {}
+    override fun windowDeactivated(e: WindowEvent) {}
+    override fun windowDeiconified(e: WindowEvent) {
+        LOG.info("Webcam viewer resumed")
+        panel!!.resume()
+    }
 
-		webcam = picker.getSelectedWebcam();
+    override fun windowIconified(e: WindowEvent) {
+        LOG.info("Webcam viewer paused")
+        panel!!.pause()
+    }
 
-		if (webcam == null) {
-			LOG.error("No webcams found");
-			System.exit(1);
-		}
+    override fun uncaughtException(t: Thread, e: Throwable) {
+        e.printStackTrace()
+        LOG.error(String.format("Exception in thread %s", t.name), e)
+    }
 
-		webcam.setViewSize(WebcamResolution.VGA.getSize());
-		webcam.addWebcamListener(WebcamViewer.this);
+    override fun itemStateChanged(e: ItemEvent) {
+        if (e.item === webcam) {
+            return
+        }
+        if (webcam == null) {
+            return
+        }
+        val tmp = panel
+        remove(panel)
+        webcam!!.removeWebcamListener(this)
+        webcam = e.item as Webcam
+        webcam!!.viewSize = WebcamResolution.VGA.size
+        webcam!!.addWebcamListener(this)
+        println("selected " + webcam!!.name)
+        panel = WebcamPanel(webcam, false)
+        add(panel, BorderLayout.CENTER)
+        val t: Thread = object : Thread() {
+            override fun run() {
+                tmp!!.stop()
+                panel!!.start()
+            }
+        }
+        t.isDaemon = true
+        t.uncaughtExceptionHandler = this
+        t.start()
+    }
 
-		panel = new WebcamPanel(webcam, false);
-		panel.setFPSDisplayed(true);
-
-		add(picker, BorderLayout.NORTH);
-		add(panel, BorderLayout.CENTER);
-
-		pack();
-		setVisible(true);
-
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				panel.start();
-			}
-		};
-		t.setName("webcam-viewer-starter");
-		t.setDaemon(true);
-		t.setUncaughtExceptionHandler(this);
-		t.start();
-	}
-
-	@Override
-	public void webcamOpen(WebcamEvent we) {
-		LOG.info("Webcam open");
-	}
-
-	@Override
-	public void webcamClosed(WebcamEvent we) {
-		LOG.info("Webcam closed");
-	}
-
-	@Override
-	public void webcamDisposed(WebcamEvent we) {
-		LOG.info("Webcam disposed");
-	}
-
-	@Override
-	public void webcamImageObtained(WebcamEvent we) {
-		// do nothing
-	}
-
-	@Override
-	public void windowActivated(WindowEvent e) {
-	}
-
-	@Override
-	public void windowClosed(WindowEvent e) {
-		webcam.close();
-	}
-
-	@Override
-	public void windowClosing(WindowEvent e) {
-	}
-
-	@Override
-	public void windowOpened(WindowEvent e) {
-	}
-
-	@Override
-	public void windowDeactivated(WindowEvent e) {
-	}
-
-	@Override
-	public void windowDeiconified(WindowEvent e) {
-		LOG.info("Webcam viewer resumed");
-		panel.resume();
-	}
-
-	@Override
-	public void windowIconified(WindowEvent e) {
-		LOG.info("Webcam viewer paused");
-		panel.pause();
-	}
-
-	@Override
-	public void uncaughtException(Thread t, Throwable e) {
-		e.printStackTrace();
-		LOG.error(String.format("Exception in thread %s", t.getName()), e);
-	}
-
-	@Override
-	public void itemStateChanged(ItemEvent e) {
-
-		if (e.getItem() == webcam) {
-			return;
-		}
-
-		if (webcam == null) {
-			return;
-		}
-
-		final WebcamPanel tmp = panel;
-
-		remove(panel);
-
-		webcam.removeWebcamListener(this);
-
-		webcam = (Webcam) e.getItem();
-		webcam.setViewSize(WebcamResolution.VGA.getSize());
-		webcam.addWebcamListener(this);
-
-		System.out.println("selected " + webcam.getName());
-
-		panel = new WebcamPanel(webcam, false);
-
-		add(panel, BorderLayout.CENTER);
-
-		Thread t = new Thread() {
-
-			@Override
-			public void run() {
-				tmp.stop();
-				panel.start();
-			}
-		};
-		t.setDaemon(true);
-		t.setUncaughtExceptionHandler(this);
-		t.start();
-
-	}
+    companion object {
+        private const val serialVersionUID = 1L
+        private val LOG = LoggerFactory.getLogger(WebcamViewer::class.java)
+    }
 }

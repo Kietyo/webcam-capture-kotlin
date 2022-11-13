@@ -1,57 +1,50 @@
-package com.github.sarxos.webcam;
+package com.github.sarxos.webcam
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
-
+import org.slf4j.LoggerFactory
+import sun.misc.Signal
+import sun.misc.SignalHandler
 
 /**
  * Primitive signal handler. This class is using undocumented classes from
  * sun.misc.* and therefore should be used with caution.
- * 
+ *
  * @author Bartosz Firyn (SarXos)
  */
-@SuppressWarnings("restriction")
-final class WebcamSignalHandler implements SignalHandler {
+internal class WebcamSignalHandler : SignalHandler {
+    private var deallocator: WebcamDeallocator? = null
+    private var handler: SignalHandler? = null
 
-	private static final Logger LOG = LoggerFactory.getLogger(WebcamSignalHandler.class);
+    init {
+        handler = Signal.handle(Signal("TERM"), this)
+    }
 
-	private WebcamDeallocator deallocator = null;
+    override fun handle(signal: Signal) {
+        LOG.warn("Detected signal {} {}, calling deallocator", signal.name, signal.number)
 
-	private SignalHandler handler = null;
+        // do nothing on "signal default" or "signal ignore"
+        if (handler === SignalHandler.SIG_DFL || handler === SignalHandler.SIG_IGN) {
+            return
+        }
+        try {
+            deallocator!!.deallocate()
+        } finally {
+            handler!!.handle(signal)
+        }
+    }
 
-	public WebcamSignalHandler() {
-		handler = Signal.handle(new Signal("TERM"), this);
-	}
+    fun set(deallocator: WebcamDeallocator?) {
+        this.deallocator = deallocator
+    }
 
-	@Override
-	public void handle(Signal signal) {
+    fun get(): WebcamDeallocator? {
+        return deallocator
+    }
 
-		LOG.warn("Detected signal {} {}, calling deallocator", signal.getName(), signal.getNumber());
+    fun reset() {
+        deallocator = null
+    }
 
-		// do nothing on "signal default" or "signal ignore"
-		if (handler == SIG_DFL || handler == SIG_IGN) {
-			return;
-		}
-
-		try {
-			deallocator.deallocate();
-		} finally {
-			handler.handle(signal);
-		}
-	}
-
-	public void set(WebcamDeallocator deallocator) {
-		this.deallocator = deallocator;
-	}
-
-	public WebcamDeallocator get() {
-		return this.deallocator;
-	}
-
-	public void reset() {
-		this.deallocator = null;
-	}
+    companion object {
+        private val LOG = LoggerFactory.getLogger(WebcamSignalHandler::class.java)
+    }
 }

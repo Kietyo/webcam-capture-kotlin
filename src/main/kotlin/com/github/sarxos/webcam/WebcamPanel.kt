@@ -120,8 +120,8 @@ class WebcamPanel @JvmOverloads constructor(
          * Buffered image resized to fit into panel drawing area.
          */
         private var resizedImage: BufferedImage? = null
-        override fun paintPanel(owner: WebcamPanel?, g2: Graphics2D?) {
-            assert(owner != null)
+        override fun paintPanel(panel: WebcamPanel?, g2: Graphics2D?) {
+            assert(panel != null)
             assert(g2 != null)
             val antialiasing = g2!!.getRenderingHint(RenderingHints.KEY_ANTIALIASING)
             g2.setRenderingHint(
@@ -737,7 +737,7 @@ class WebcamPanel @JvmOverloads constructor(
         this.webcam = webcam
         updater = ImageUpdater()
         this.supplier = supplier
-        rb = WebcamUtils.loadRB(WebcamPanel::class.java, locale)
+        rb = WebcamUtils.loadRB(WebcamPanel::class.java)
         isDoubleBuffered = true
         addPropertyChangeListener("locale", this)
         if (size == null) {
@@ -869,8 +869,8 @@ class WebcamPanel @JvmOverloads constructor(
      */
     var fPSLimit: Double
         get() = frequency
-        set(fps) {
-            var fps = fps
+        set(value) {
+            var fps = value
             if (fps > MAX_FREQUENCY) {
                 fps = MAX_FREQUENCY
             }
@@ -926,7 +926,7 @@ class WebcamPanel @JvmOverloads constructor(
     override fun propertyChange(evt: PropertyChangeEvent) {
         val lc = evt.newValue as Locale
         if (lc != null) {
-            rb = WebcamUtils.loadRB(WebcamPanel::class.java, lc)
+            rb = WebcamUtils.loadRB(WebcamPanel::class.java)
         }
     }
 

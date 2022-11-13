@@ -31,11 +31,11 @@ object WebcamUtils {
     }
 
     fun capture(webcam: Webcam, filename: String) {
-        var filename = filename
-        if (!filename.endsWith(".jpg")) {
-            filename = "$filename.jpg"
+        var filenameCopy = filename
+        if (!filenameCopy.endsWith(".jpg")) {
+            filenameCopy = "$filenameCopy.jpg"
         }
-        capture(webcam, File(filename))
+        capture(webcam, File(filenameCopy))
     }
 
     fun capture(webcam: Webcam, filename: String, format: String) {
@@ -69,7 +69,7 @@ object WebcamUtils {
      * @param locale the [Locale] object
      * @return Resource bundle
      */
-    fun loadRB(clazz: Class<*>, locale: Locale?): ResourceBundle {
+    fun loadRB(clazz: Class<*>): ResourceBundle {
         val pkg = WebcamUtils::class.java.getPackage().name.replace("\\.".toRegex(), "/")
         return PropertyResourceBundle.getBundle(String.format("%s/i18n/%s", pkg, clazz.simpleName))
     }

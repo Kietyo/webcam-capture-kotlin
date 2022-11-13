@@ -89,8 +89,8 @@ class Device : CPPObject {
 	 * (non-Javadoc)
 	 * @see org.bridj.NativeObject#equals(java.lang.Object)
 	 */
-    override fun equals(o: Any?): Boolean {
-        return o.toString() == this.toString()
+    override fun equals(other: Any?): Boolean {
+        return other.toString() == this.toString()
     }
 
     /*

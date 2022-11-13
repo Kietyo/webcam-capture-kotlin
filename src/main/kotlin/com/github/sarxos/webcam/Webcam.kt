@@ -492,7 +492,7 @@ class Webcam(device: WebcamDevice?) {
      * @return Array of supported dimensions
      */
     val viewSizes: Array<Dimension>
-        get() = device!!.resolutions!!
+        get() = device!!.resolutions
 
     /**
      * Set custom resolution. If you are using this method you have to make sure that your webcam
@@ -502,7 +502,7 @@ class Webcam(device: WebcamDevice?) {
      */
     var customViewSizes: Array<Dimension>
         get() {
-            return customSizes!!.toTypedArray()
+            return customSizes.toTypedArray()
         }
         set(sizes) {
             setCustomViewSizess(*sizes)
@@ -536,8 +536,8 @@ class Webcam(device: WebcamDevice?) {
             if (!isReady) {
                 return null
             }
-            var t1: Long = 0
-            var t2: Long = 0
+            val t1: Long
+            val t2: Long
             return if (asynchronous) {
                 updater!!.getImage()
             } else {
@@ -593,8 +593,8 @@ class Webcam(device: WebcamDevice?) {
             }
             assert(driver != null)
             assert(device != null)
-            var t1: Long = 0
-            var t2: Long = 0
+            val t1: Long
+            val t2: Long
 
             // some devices can support direct image buffers, and for those call
             // processor task, and for those which does not support direct image

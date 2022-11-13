@@ -22,9 +22,6 @@ abstract class WebcamTask(threadSafe: Boolean, val device: WebcamDevice?) {
             handle()
         } else {
             if (doSync) {
-                if (processor == null) {
-                    throw RuntimeException("Driver should be synchronized, but processor is null")
-                }
                 processor.process(this)
             } else {
                 handle()

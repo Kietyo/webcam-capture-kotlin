@@ -199,7 +199,7 @@ class WebcamUpdater(webcam: Webcam, delayCalculator: DelayCalculator?) : Runnabl
             deviceFps = (device as FPSSource).fps
         }
         val duration = t2 - t1
-        val delay = delayCalculator!!.calculateDelay(duration, deviceFps)
+        val delay = delayCalculator.calculateDelay(duration, deviceFps)
         val delta = duration + 1 // +1 to avoid division by zero
         if (deviceFps >= 0) {
             fPS = deviceFps

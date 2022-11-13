@@ -2,8 +2,8 @@ package com.github.sarxos.webcam
 
 import javax.swing.JComboBox
 
-class WebcamPicker @JvmOverloads constructor(webcams: List<Webcam?>? = Webcam.webcams) :
-    JComboBox<Webcam?>(WebcamPickerModel(webcams)) {
+class WebcamPicker @JvmOverloads constructor(webcams: List<Webcam> = Webcam.webcams) :
+    JComboBox<Webcam>(WebcamPickerModel(webcams)) {
     init {
         setRenderer(RENDERER)
     }

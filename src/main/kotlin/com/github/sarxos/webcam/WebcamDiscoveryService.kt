@@ -84,8 +84,7 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
     fun scan() {
         val listeners = discoveryListeners
         val tmpnew = driver.devices
-        var tmpold: List<WebcamDevice?>? = null
-        tmpold = try {
+        val tmpold: List<WebcamDevice?>? = try {
             getDevices(getWebcams(Long.MAX_VALUE, TimeUnit.MILLISECONDS))
         } catch (e: TimeoutException) {
             throw WebcamException(e)
@@ -97,8 +96,8 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
         val newones: MutableList<WebcamDevice> = LinkedList(tmpnew)
         val oi = oldones.iterator()
         var ni: MutableIterator<WebcamDevice?>? = null
-        var od: WebcamDevice? = null // old device
-        var nd: WebcamDevice? = null // new device
+        var od: WebcamDevice?  // old device
+        var nd: WebcamDevice?  // new device
 
         // reduce lists
         while (oi.hasNext()) {
@@ -140,7 +139,7 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
             setCurrentWebcams(tmpnew)
             for (device in newones) {
                 for (webcam in webcams!!) {
-                    if (webcam.getDevice()!!.name == device.name) {
+                    if (webcam.getDevice().name == device.name) {
                         notifyWebcamFound(webcam, listeners)
                         break
                     }

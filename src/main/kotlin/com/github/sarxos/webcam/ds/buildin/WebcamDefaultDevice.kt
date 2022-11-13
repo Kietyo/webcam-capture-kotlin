@@ -178,7 +178,7 @@ open class WebcamDefaultDevice constructor(device: Device) : WebcamDevice, Webca
         if (size == null) {
             throw RuntimeException("The resolution size cannot be null")
         }
-        LOG.debug("Webcam device {} starting session, size {}", deviceRef!!.identifierStr, size)
+        LOG.debug("Webcam device {} starting session, size {}", deviceRef.identifierStr, size)
         grabber = OpenIMAJGrabber()
 
         // NOTE!

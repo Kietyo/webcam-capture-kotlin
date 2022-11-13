@@ -290,10 +290,10 @@ enum class WebcamResolution(width: Int, height: Int) {
     var size: Dimension = Dimension(width, height)
 
     val pixelsCount: Int
-        get() = size!!.width * size.height
+        get() = size.width * size.height
     val aspectRatio: Dimension
         get() {
-            val factor = getCommonFactor(size!!.width, size.height)
+            val factor = getCommonFactor(size.width, size.height)
             val wr = size.width / factor
             val hr = size.height / factor
             return Dimension(wr, hr)
@@ -304,12 +304,12 @@ enum class WebcamResolution(width: Int, height: Int) {
     }
 
     val width: Int
-        get() = size!!.width
+        get() = size.width
     val height: Int
-        get() = size!!.height
+        get() = size.height
 
     override fun toString(): String {
-        val w = size!!.width
+        val w = size.width
         val h = size.height
         val ratio = aspectRatio
         val rw = ratio.width

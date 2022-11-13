@@ -1,28 +1,18 @@
-package com.github.sarxos.webcam;
+package com.github.sarxos.webcam
 
-import java.util.List;
+import javax.swing.DefaultComboBoxModel
 
-import javax.swing.DefaultComboBoxModel;
+class WebcamPickerModel(webcams: List<Webcam>) : DefaultComboBoxModel<Webcam?>(webcams.toTypedArray()) {
+    override fun getSelectedItem(): Webcam {
+        return super.getSelectedItem() as Webcam
+    }
 
+    override fun setSelectedItem(webcam: Any) {
+        require(webcam is Webcam) { "Selected object has to be an Webcam instance" }
+        super.setSelectedItem(webcam)
+    }
 
-public class WebcamPickerModel extends DefaultComboBoxModel<Webcam> {
-
-	private static final long serialVersionUID = 1L;
-
-	public WebcamPickerModel(List<Webcam> webcams) {
-		super(webcams.toArray(new Webcam[webcams.size()]));
-	}
-
-	@Override
-	public Webcam getSelectedItem() {
-		return (Webcam) super.getSelectedItem();
-	}
-
-	@Override
-	public void setSelectedItem(Object webcam) {
-		if (!(webcam instanceof Webcam)) {
-			throw new IllegalArgumentException("Selected object has to be an Webcam instance");
-		}
-		super.setSelectedItem(webcam);
-	}
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }

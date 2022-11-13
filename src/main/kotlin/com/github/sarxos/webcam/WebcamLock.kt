@@ -78,7 +78,7 @@ class WebcamLock(
     }
 
     private val lockName: String
-        private get() = String.format(".webcam-lock-%d", Math.abs(webcam.name.hashCode()))
+        get() = String.format(".webcam-lock-%d", Math.abs(webcam.name.hashCode()))
 
     private fun write(value: Long) {
         if (disabled.get()) {

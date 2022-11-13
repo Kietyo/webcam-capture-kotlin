@@ -63,7 +63,7 @@ class WebcamMotionDetector(
      */
     private inner class Inverter : Runnable {
         override fun run() {
-            var delay = 0
+            var delay: Int
             while (running.get()) {
                 try {
                     Thread.sleep(10)
