@@ -1,71 +1,39 @@
-package com.github.sarxos.webcam;
+package com.github.sarxos.webcam
 
-import java.awt.Dimension;
-import java.util.ArrayList;
-import java.util.Arrays;
+import io.mockk.MockKAnnotations
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
+import io.mockk.verify
+import io.mockk.verifyAll
+import org.junit.jupiter.api.Test
+import java.awt.Dimension
+import java.util.*
 
-import org.easymock.EasyMock;
-import org.easymock.EasyMockRunner;
-import org.easymock.EasyMockSupport;
-import org.easymock.Mock;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+class WebcamTest {
+    @MockK
+    lateinit var driver: WebcamDriver
 
+    @MockK
+    lateinit var device: WebcamDevice
 
-@RunWith(EasyMockRunner.class)
-public class WebcamTest extends EasyMockSupport {
+    @Test
+    fun test_open() {
+        MockKAnnotations.init(this)
 
-	@Mock
-	WebcamDriver driver;
+        every { device.name } returns "HD Mock Device"
+        every { device.isOpen } returns false
+        every { device.getResolution() } returns Dimension(1024, 768)
 
-	@Mock
-	WebcamDevice device;
+        every { device.open() } returns Unit
+        every { device.dispose() } returns Unit
 
-	@Test
-	public void test_open() {
+        every { driver.devices } returns ArrayList(Arrays.asList(device))
+        every { driver.isThreadSafe } returns true
 
-		EasyMock
-			.expect(device.getName())
-			.andReturn("HD Mock Device")
-			.anyTimes();
+        Webcam.setDriver(driver)
+        val webcam = Webcam.getDefault()
+        webcam!!.open()
+        verify { device.open() }
 
-		EasyMock
-			.expect(device.isOpen())
-			.andReturn(false)
-			.once();
-
-		EasyMock
-			.expect(device.getResolution())
-			.andReturn(new Dimension(1024, 768))
-			.once();
-
-		device.open();
-		EasyMock
-			.expectLastCall()
-			.once();
-
-		device.dispose();
-		EasyMock
-			.expectLastCall()
-			.anyTimes();
-
-		EasyMock
-			.expect(driver.getDevices())
-			.andReturn(new ArrayList<WebcamDevice>(Arrays.asList(device)))
-			.anyTimes();
-
-		EasyMock
-			.expect(driver.isThreadSafe())
-			.andReturn(true)
-			.anyTimes();
-
-		replayAll();
-
-		Webcam.setDriver(driver);
-
-		Webcam webcam = Webcam.getDefault();
-		webcam.open();
-
-		verifyAll();
-	}
+    }
 }

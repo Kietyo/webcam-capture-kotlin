@@ -1,9 +1,6 @@
-package com.github.sarxos.webcam.util;
+package com.github.sarxos.webcam.util
 
-public interface Initializable {
-
-	void initialize();
-
-	void teardown();
-
+interface Initializable {
+    fun initialize()
+    fun teardown()
 }

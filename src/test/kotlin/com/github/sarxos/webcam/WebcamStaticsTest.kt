@@ -4,6 +4,8 @@ import com.github.sarxos.webcam.Webcam.Companion.getDriver
 import com.github.sarxos.webcam.ds.test.DummyDriver
 import com.github.sarxos.webcam.ds.test.DummyDriver2
 import com.github.sarxos.webcam.ds.test.DummyDriver3
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertThrows
 import java.awt.Dimension
 import java.awt.Image
@@ -13,14 +15,14 @@ import kotlin.test.*
  * @author bfiryn
  */
 class WebcamStaticsTest {
-    @BeforeTest
+    @BeforeEach
     fun prepare() {
         Webcam.resetDriver()
         println(Thread.currentThread().name + ": Register dummy driver")
         Webcam.registerDriver(DummyDriver::class.java)
     }
 
-    @AfterTest
+    @AfterEach
     fun cleanup() {
         println(Thread.currentThread().name + ": Reset driver")
         for (webcam in Webcam.webcams) {

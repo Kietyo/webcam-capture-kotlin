@@ -78,7 +78,7 @@ class Webcam(device: WebcamDevice?) {
     /**
      * List of custom resolution sizes supported by webcam instance.
      */
-    private var customSizes: MutableList<Dimension>? = ArrayList()
+    private var customSizes: MutableList<Dimension> = ArrayList()
 
     /**
      * Shutdown hook.
@@ -503,17 +503,15 @@ class Webcam(device: WebcamDevice?) {
      */
     var customViewSizes: Array<Dimension>
         get() {
-            assert(customSizes != null)
             return customSizes!!.toTypedArray()
         }
         set(sizes) {
-            assert(customSizes != null)
-            if (sizes == null) {
-                customSizes!!.clear()
-                return
-            }
-            customSizes = Arrays.asList(*sizes)
+            setCustomViewSizess(*sizes)
         }// +1 to avoid division by zero
+
+    fun setCustomViewSizess(vararg sizes: Dimension) {
+        customSizes = mutableListOf(*sizes)
+    }
 
     // notify webcam listeners about new image available
 // get image
