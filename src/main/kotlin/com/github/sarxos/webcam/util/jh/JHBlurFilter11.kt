@@ -197,9 +197,9 @@ class JHBlurFilter : JHFilter {
         }
 
         fun blurFractional(`in`: IntArray, out: IntArray, width: Int, height: Int, radius: Float) {
-            var radius = radius
-            radius -= radius.toInt().toFloat()
-            val f = 1.0f / (1 + 2 * radius)
+            var radiusCopy = radius
+            radiusCopy -= radiusCopy.toInt().toFloat()
+            val f = 1.0f / (1 + 2 * radiusCopy)
             var inIndex = 0
             for (y in 0 until height) {
                 var outIndex = y
@@ -222,10 +222,10 @@ class JHBlurFilter : JHFilter {
                     val r3 = rgb3 shr 16 and 0xff
                     val g3 = rgb3 shr 8 and 0xff
                     val b3 = rgb3 and 0xff
-                    a1 = a2 + ((a1 + a3) * radius).toInt()
-                    r1 = r2 + ((r1 + r3) * radius).toInt()
-                    g1 = g2 + ((g1 + g3) * radius).toInt()
-                    b1 = b2 + ((b1 + b3) * radius).toInt()
+                    a1 = a2 + ((a1 + a3) * radiusCopy).toInt()
+                    r1 = r2 + ((r1 + r3) * radiusCopy).toInt()
+                    g1 = g2 + ((g1 + g3) * radiusCopy).toInt()
+                    b1 = b2 + ((b1 + b3) * radiusCopy).toInt()
                     a1 *= f.toInt()
                     r1 *= f.toInt()
                     g1 *= f.toInt()
@@ -270,9 +270,9 @@ class JHBlurFilter : JHFilter {
          * @param length the length
          */
         fun unpremultiply(p: IntArray, offset: Int, length: Int) {
-            var length = length
-            length += offset
-            for (i in offset until length) {
+            var newLength = length
+            newLength += offset
+            for (i in offset until newLength) {
                 val rgb = p[i]
                 val a = rgb shr 24 and 0xff
                 var r = rgb shr 16 and 0xff

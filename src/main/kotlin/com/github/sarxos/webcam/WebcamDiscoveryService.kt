@@ -95,7 +95,7 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
         val oldones: MutableList<WebcamDevice?> = LinkedList(tmpold)
         val newones: MutableList<WebcamDevice> = LinkedList(tmpnew)
         val oi = oldones.iterator()
-        var ni: MutableIterator<WebcamDevice?>? = null
+        var ni: MutableIterator<WebcamDevice?>?
         var od: WebcamDevice?  // old device
         var nd: WebcamDevice?  // new device
 
@@ -121,7 +121,7 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
             val notified: MutableList<Webcam> = ArrayList()
             for (device in oldones) {
                 for (webcam in webcams!!) {
-                    if (webcam.getDevice()!!.name == device!!.name) {
+                    if (webcam.getDevice().name == device!!.name) {
                         notified.add(webcam)
                         break
                     }

@@ -61,7 +61,7 @@ class MjpegInputStream(inputStream: InputStream?) :
         ByteArrayInputStream(headerBytes).use { bais ->
             InputStreamReader(bais).use { isr ->
                 BufferedReader(isr).use { br ->
-                    var line: String? = null
+                    var line: String?
                     while (br.readLine().also { line = it } != null) {
                         if (line!!.lowercase(Locale.getDefault()).startsWith(CONTENT_LENGTH)) {
                             val parts = line!!.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
@@ -92,8 +92,7 @@ class MjpegInputStream(inputStream: InputStream?) :
         reset()
         val header = ByteArray(n)
         readFully(header)
-        var length = -1
-        length = try {
+        val length: Int = try {
             parseContentLength(header)
         } catch (e: NumberFormatException) {
             getEndOfSeqeunce(this, EOI_MARKER)

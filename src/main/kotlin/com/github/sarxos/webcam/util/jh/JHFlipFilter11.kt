@@ -51,7 +51,7 @@ class JHFlipFilter @JvmOverloads constructor(operation: Int = FLIP_90CW) : JHFil
         src: BufferedImage,
         dst: BufferedImage
     ): BufferedImage {
-        var dst: BufferedImage? = dst
+        var dstCopy: BufferedImage = dst
         val width = src.width
         val height = src.height
         val inPixels = getRGB(src, 0, 0, width, height, null)
@@ -93,20 +93,20 @@ class JHFlipFilter @JvmOverloads constructor(operation: Int = FLIP_90CW) : JHFil
                     }
                 }
                 val newIndex = newRow * newW + newCol
-                newPixels[newIndex] = inPixels!![index]
+                newPixels[newIndex] = inPixels[index]
             }
         }
-        if (dst == null) {
+        if (dstCopy == null) {
             val dstCM = src.colorModel
-            dst = BufferedImage(
+            dstCopy = BufferedImage(
                 dstCM,
                 dstCM.createCompatibleWritableRaster(newW, newH),
                 dstCM.isAlphaPremultiplied,
                 null
             )
         }
-        setRGB(dst, 0, 0, newW, newH, newPixels)
-        return dst
+        setRGB(dstCopy, 0, 0, newW, newH, newPixels)
+        return dstCopy
     }
 
     override fun toString(): String {

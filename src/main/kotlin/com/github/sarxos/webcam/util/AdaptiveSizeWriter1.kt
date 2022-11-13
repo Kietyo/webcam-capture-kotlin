@@ -22,7 +22,7 @@ class AdaptiveSizeWriter(@field:Volatile private var size: Int) {
         // loop and try to compress until compressed image bytes array is not longer than a given
         // maximum value, reduce quality by 25% in every step
         val m = size
-        var s = 0
+        var s: Int
         var i = 0
         do {
             if (compress(bi, quality).also { s = it } > m) {

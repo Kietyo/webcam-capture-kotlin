@@ -85,7 +85,7 @@ class WebcamLock(
             return
         }
         val name = lockName
-        var tmp: File? = null
+        val tmp: File?
         var dos: DataOutputStream? = null
         try {
             tmp = File.createTempFile(String.format("%s-tmp", name), "")
@@ -130,7 +130,7 @@ class WebcamLock(
             var fos: FileOutputStream? = null
             var fis: FileInputStream? = null
             var k = 0
-            var n = -1
+            var n: Int
             val buffer = ByteArray(8)
             var rewritten = false
 

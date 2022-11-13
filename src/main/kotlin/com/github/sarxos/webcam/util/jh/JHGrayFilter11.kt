@@ -50,12 +50,12 @@ class JHGrayFilter : JHFilter() {
     }
 
     private fun filterRGB(rgb: Int): Int {
-        var rgb = rgb
-        val a = rgb and -0x1000000
-        val r = rgb shr 16 and 0xff
-        val g = rgb shr 8 and 0xff
-        val b = rgb and 0xff
-        rgb = r * 77 + g * 151 + b * 28 shr 8 // NTSC luma
-        return a or (rgb shl 16) or (rgb shl 8) or rgb
+        var newRgb = rgb
+        val a = newRgb and -0x1000000
+        val r = newRgb shr 16 and 0xff
+        val g = newRgb shr 8 and 0xff
+        val b = newRgb and 0xff
+        newRgb = r * 77 + g * 151 + b * 28 shr 8 // NTSC luma
+        return a or (newRgb shl 16) or (newRgb shl 8) or newRgb
     }
 }
