@@ -19,7 +19,7 @@ interface WebcamMotionDetectorAlgorithm {
      * @param original image
      * @return modified image
      */
-    fun filter(original: BufferedImage?): BufferedImage
+    fun filter(original: BufferedImage): BufferedImage
 
     /**
      * Detects motion by comparison of the two specified images content.

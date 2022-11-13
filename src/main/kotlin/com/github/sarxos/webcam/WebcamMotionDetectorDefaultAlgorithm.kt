@@ -1,6 +1,6 @@
 package com.github.sarxos.webcam
 
-import com.github.sarxos.webcam.util.jh.JHBlurFilter
+import com.github.sarxos.webcam.util.jhimport.JHBlurFilter
 import com.github.sarxos.webcam.util.jh.JHGrayFilter
 import java.awt.Point
 import java.awt.Rectangle
@@ -56,7 +56,7 @@ class WebcamMotionDetectorDefaultAlgorithm @JvmOverloads constructor(
      */
     private val gray = JHGrayFilter()
     private var doNotEnganeZones = emptyList<Rectangle>()
-    override fun filter(original: BufferedImage?): BufferedImage {
+    override fun filter(original: BufferedImage): BufferedImage {
         var modified = blur.filter(original, null)
         modified = gray.filter(modified, null)
         return modified
