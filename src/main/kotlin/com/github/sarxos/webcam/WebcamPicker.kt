@@ -1,26 +1,18 @@
-package com.github.sarxos.webcam;
+package com.github.sarxos.webcam
 
-import java.util.List;
+import javax.swing.JComboBox
 
-import javax.swing.JComboBox;
+class WebcamPicker @JvmOverloads constructor(webcams: List<Webcam?>? = Webcam.webcams) :
+    JComboBox<Webcam?>(WebcamPickerModel(webcams)) {
+    init {
+        setRenderer(RENDERER)
+    }
 
+    val selectedWebcam: Webcam
+        get() = selectedItem as Webcam
 
-public class WebcamPicker extends JComboBox<Webcam> {
-
-	private static final long serialVersionUID = 1L;
-
-	private static final WebcamPickerCellRenderer RENDERER = new WebcamPickerCellRenderer();
-
-	public WebcamPicker() {
-		this(Webcam.getWebcams());
-	}
-
-	public WebcamPicker(List<Webcam> webcams) {
-		super(new WebcamPickerModel(webcams));
-		setRenderer(RENDERER);
-	}
-
-	public Webcam getSelectedWebcam() {
-		return (Webcam) getSelectedItem();
-	}
+    companion object {
+        private const val serialVersionUID = 1L
+        private val RENDERER = WebcamPickerCellRenderer()
+    }
 }

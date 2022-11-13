@@ -84,11 +84,6 @@ class OpenIMAJGrabber : CPPObject {
 
     companion object {
         init {
-            println("ya boi kiet is here")
-            val path = File(".")
-            println(path.absolutePath)
-            println(path.absoluteFile)
-            println(path.listFiles()?.toList())
             Platform.addEmbeddedLibraryResourceRoot("com/github/sarxos/webcam/ds/buildin/lib/")
             BridJ.register()
         }

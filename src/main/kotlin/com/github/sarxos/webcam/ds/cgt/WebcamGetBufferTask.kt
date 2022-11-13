@@ -1,48 +1,36 @@
-package com.github.sarxos.webcam.ds.cgt;
+package com.github.sarxos.webcam.ds.cgt
 
-import java.nio.ByteBuffer;
+import com.github.sarxos.webcam.WebcamDevice
+import com.github.sarxos.webcam.WebcamDriver
+import com.github.sarxos.webcam.WebcamTask
+import org.slf4j.LoggerFactory
+import java.nio.ByteBuffer
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+class WebcamGetBufferTask(driver: WebcamDriver?, device: WebcamDevice?) : WebcamTask(driver!!, device) {
+    @Volatile
+    var buffer: ByteBuffer? = null
+    fun getBuffer(): ByteBuffer? {
+        try {
+            process()
+        } catch (e: InterruptedException) {
+            LOG.debug("Image buffer request interrupted", e)
+            return null
+        }
+        return buffer
+    }
 
-import com.github.sarxos.webcam.WebcamDevice;
-import com.github.sarxos.webcam.WebcamDevice.BufferAccess;
-import com.github.sarxos.webcam.WebcamDriver;
-import com.github.sarxos.webcam.WebcamTask;
+    override fun handle() {
+        val device = device!!
+        if (!device.isOpen) {
+            return
+        }
+        if (device !is WebcamDevice.BufferAccess) {
+            return
+        }
+        buffer = (device as WebcamDevice.BufferAccess).imageBytes
+    }
 
-
-public class WebcamGetBufferTask extends WebcamTask {
-
-	private static final Logger LOG = LoggerFactory.getLogger(WebcamGetBufferTask.class);
-
-	private volatile ByteBuffer buffer = null;
-
-	public WebcamGetBufferTask(WebcamDriver driver, WebcamDevice device) {
-		super(driver, device);
-	}
-
-	public ByteBuffer getBuffer() {
-		try {
-			process();
-		} catch (InterruptedException e) {
-			LOG.debug("Image buffer request interrupted", e);
-			return null;
-		}
-		return buffer;
-	}
-
-	@Override
-	protected void handle() {
-
-		WebcamDevice device = getDevice();
-		if (!device.isOpen()) {
-			return;
-		}
-
-		if (!(device instanceof BufferAccess)) {
-			return;
-		}
-
-		buffer = ((BufferAccess) device).getImageBytes();
-	}
+    companion object {
+        private val LOG = LoggerFactory.getLogger(WebcamGetBufferTask::class.java)
+    }
 }

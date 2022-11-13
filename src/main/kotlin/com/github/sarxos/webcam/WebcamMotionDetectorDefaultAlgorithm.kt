@@ -1,391 +1,310 @@
-package com.github.sarxos.webcam;
+package com.github.sarxos.webcam
 
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import com.github.sarxos.webcam.util.jh.JHBlurFilter;
-import com.github.sarxos.webcam.util.jh.JHGrayFilter;
-
+import com.github.sarxos.webcam.util.jh.JHBlurFilter
+import com.github.sarxos.webcam.util.jh.JHGrayFilter
+import java.awt.Point
+import java.awt.Rectangle
+import java.awt.image.BufferedImage
 
 /**
  * Default motion detector algorithm.
  */
 /**
  * @author kevin
- *
  */
-public class WebcamMotionDetectorDefaultAlgorithm implements WebcamMotionDetectorAlgorithm {
+class WebcamMotionDetectorDefaultAlgorithm @JvmOverloads constructor(
+    pixelThreshold: Int = DEFAULT_PIXEL_THREASHOLD,
+    areaThreshold: Double = DEFAULT_AREA_THREASHOLD
+) : WebcamMotionDetectorAlgorithm {
+    /**
+     * Pixel intensity threshold (0 - 255).
+     */
+    @Volatile
+    private var pixelThreshold = DEFAULT_PIXEL_THREASHOLD
 
-	/**
-	 * Default pixel difference intensity threshold (set to 25).
-	 */
-	public static final int DEFAULT_PIXEL_THREASHOLD = 25;
+    /**
+     * Percentage image area fraction threshold (0 - 100).
+     */
+    @Volatile
+    private var areaThreshold = DEFAULT_AREA_THREASHOLD
 
-	/**
-	 * Default percentage image area fraction threshold (set to 0.2%).
-	 */
-	public static final double DEFAULT_AREA_THREASHOLD = 0.2;
+    /**
+     * Maximum pixel change percentage threshold (0 - 100).
+     */
+    @Volatile
+    private var areaThresholdMax = DEFAULT_AREA_THREASHOLD_MAX
 
-	/**
-	 * Default max percentage image area fraction threshold (set to 100%).
-	 */
-	public static final double DEFAULT_AREA_THREASHOLD_MAX = 100;
+    /**
+     * Motion strength (0 = no motion, 100 = full image covered by motion).
+     */
+    override var area = 0.0
+        private set
 
-	/**
-	 * Pixel intensity threshold (0 - 255).
-	 */
-	private volatile int pixelThreshold = DEFAULT_PIXEL_THREASHOLD;
+    /**
+     * Center of motion gravity.
+     */
+    override var cog: Point? = null
+        private set
 
-	/**
-	 * Percentage image area fraction threshold (0 - 100).
-	 */
-	private volatile double areaThreshold = DEFAULT_AREA_THREASHOLD;
+    /**
+     * Blur filter instance.
+     */
+    private val blur = JHBlurFilter(6f, 6f, 1)
 
-	/**
-	 * Maximum pixel change percentage threshold (0 - 100).
-	 */
-	private volatile double areaThresholdMax = DEFAULT_AREA_THREASHOLD_MAX;
+    /**
+     * Gray filter instance.
+     */
+    private val gray = JHGrayFilter()
+    private var doNotEnganeZones = emptyList<Rectangle>()
+    override fun filter(original: BufferedImage?): BufferedImage {
+        var modified = blur.filter(original, null)
+        modified = gray.filter(modified, null)
+        return modified
+    }
 
-	/**
-	 * Motion strength (0 = no motion, 100 = full image covered by motion).
-	 */
-	private double area = 0;
+    override fun detect(previousModified: BufferedImage?, currentModified: BufferedImage?): Boolean {
+        points.clear()
+        thresholds.clear()
+        var p = 0
+        var cogX = 0
+        var cogY = 0
+        val w = currentModified!!.width
+        val h = currentModified.height
+        var j = 0
+        if (previousModified != null) {
+            for (x in 0 until w) {
+                for (y in 0 until h) {
 
-	/**
-	 * Center of motion gravity.
-	 */
-	private Point cog = null;
+                    // ignore point if it's in one of do-not-engage zones, simply skip motion
+                    // detection for corresponding pixel
+                    if (isInDoNotEngageZone(x, y)) {
+                        continue
+                    }
+                    val cpx = currentModified.getRGB(x, y)
+                    val ppx = previousModified.getRGB(x, y)
+                    val pid = combinePixels(cpx, ppx) and 0x000000ff
+                    if (pid >= pixelThreshold) {
+                        val pp = Point(x, y)
+                        var keep = j < maxPoints
+                        if (keep) {
+                            for (g in points) {
+                                if (g.x != pp.x || g.y != pp.y) {
+                                    if (pp.distance(g) <= pointRange) {
+                                        keep = false
+                                        break
+                                    }
+                                }
+                            }
+                        }
+                        if (keep) {
+                            points.add(Point(x, y))
+                            j += 1
+                        }
+                        cogX += x
+                        cogY += y
+                        p += 1
+                        thresholds.add(pid)
+                    }
+                }
+            }
+        }
+        area = p * 100.0 / (w * h)
+        return if (area >= areaThreshold && area <= areaThresholdMax) {
+            cog = Point(cogX / p, cogY / p)
+            true
+        } else {
+            cog = Point(w / 2, h / 2)
+            false
+        }
+    }
 
-	/**
-	 * Blur filter instance.
-	 */
-	private final JHBlurFilter blur = new JHBlurFilter(6, 6, 1);
+    /**
+     * Return true if point identified by x and y coordinates is in one of the do-not-engage zones.
+     * Return false otherwise.
+     *
+     * @param x the x coordinate of a point
+     * @param y the y coordinate of a point
+     * @return True if point is in one of do-not-engage zones, false otherwise
+     */
+    private fun isInDoNotEngageZone(x: Int, y: Int): Boolean {
+        for (zone in doNotEnganeZones) {
+            if (zone.contains(x, y)) {
+                return true
+            }
+        }
+        return false
+    }
 
-	/**
-	 * Gray filter instance.
-	 */
-	private final JHGrayFilter gray = new JHGrayFilter();
+    /**
+     * Set pixel intensity difference threshold above which pixel is classified as "moved". Minimum
+     * value is 0 and maximum is 255. Default value is 10. This value is equal for all RGB
+     * components difference.
+     *
+     * @param threshold the pixel intensity difference threshold
+     * @see .DEFAULT_PIXEL_THREASHOLD
+     */
+    fun setPixelThreshold(threshold: Int) {
+        require(threshold >= 0) { "Pixel intensity threshold cannot be negative!" }
+        require(threshold <= 255) { "Pixel intensity threshold cannot be higher than 255!" }
+        pixelThreshold = threshold
+    }
 
-	private List<Rectangle> doNotEnganeZones = Collections.emptyList();
+    /**
+     * Set percentage fraction of detected motion area threshold above which it is classified as
+     * "moved". Minimum value for this is 0 and maximum is 100, which corresponds to full image
+     * covered by spontaneous motion.
+     *
+     * @param threshold the percentage fraction of image area
+     * @see .DEFAULT_AREA_THREASHOLD
+     */
+    fun setAreaThreshold(threshold: Double) {
+        require(threshold >= 0) { "Area fraction threshold cannot be negative!" }
+        require(threshold <= 100) { "Area fraction threshold cannot be higher than 100!" }
+        areaThreshold = threshold
+    }
 
-	/**
-	 * Creates default motion detector algorithm with default pixel and area thresholds.
-	 * 
-	 * @see #DEFAULT_PIXEL_THREASHOLD
-	 * @see #DEFAULT_AREA_THREASHOLD
-	 */
-	public WebcamMotionDetectorDefaultAlgorithm() {
-		this(DEFAULT_PIXEL_THREASHOLD, DEFAULT_AREA_THREASHOLD);
-	}
+    /**
+     * Set max percentage fraction of detected motion area threshold, below which it is classified
+     * as "moved". The max is optionally used to help filter false positives caused by sudden
+     * exposure changes. Minimum value for this is 0 and maximum is 100, which corresponds to full
+     * image covered by spontaneous motion.
+     *
+     * @param threshold the percentage fraction of image area
+     * @see .DEFAULT_AREA_THREASHOLD_MAX
+     */
+    fun setMaxAreaThreshold(threshold: Double) {
+        require(threshold >= 0) { "Area fraction threshold cannot be negative!" }
+        require(threshold <= 100) { "Area fraction threshold cannot be higher than 100!" }
+        areaThresholdMax = threshold
+    }
+    /**
+     * Returns the currently stored points that have been detected
+     *
+     * @return The current points
+     */
+    /**
+     * ArrayList to store the points for a detected motion
+     */
+    override var points = ArrayList<Point>()
 
-	/**
-	 * Creates default motion detector algorithm.
-	 * 
-	 * @param pixelThreshold intensity threshold (0 - 255)
-	 * @param areaThreshold percentage threshold of image covered by motion
-	 */
-	public WebcamMotionDetectorDefaultAlgorithm(int pixelThreshold, double areaThreshold) {
-		setPixelThreshold(pixelThreshold);
-		setAreaThreshold(areaThreshold);
-	}
+    /**
+     * Array list to store thresholds for debugging
+     */
+    var thresholds = ArrayList<Int>()
+    /**
+     * Get the current minimum range between each point
+     *
+     * @return The current range
+     */
+    /**
+     * Set the minimum range between each point detected
+     *
+     * @param i the range to set
+     */
+    /**
+     * The current minimum range between points
+     */
+    override var pointRange = DEFAULT_RANGE
+    /**
+     * Get the current max amount of points that can be detected at one time
+     *
+     * @return
+     */
+    /**
+     * Set the max amount of points that can be detected at one time
+     *
+     * @param i The amount of points that can be detected
+     */
+    /**
+     * The current max amount of points
+     */
+    override var maxPoints = DEFAULT_MAX_POINTS
+    /**
+     * Creates default motion detector algorithm.
+     *
+     * @param pixelThreshold intensity threshold (0 - 255)
+     * @param areaThreshold percentage threshold of image covered by motion
+     */
+    /**
+     * Creates default motion detector algorithm with default pixel and area thresholds.
+     *
+     * @see .DEFAULT_PIXEL_THREASHOLD
+     *
+     * @see .DEFAULT_AREA_THREASHOLD
+     */
+    init {
+        setPixelThreshold(pixelThreshold)
+        setAreaThreshold(areaThreshold)
+    }
 
-	@Override
-	public BufferedImage filter(BufferedImage original) {
-		BufferedImage modified = blur.filter(original, null);
-		modified = gray.filter(modified, null);
-		return modified;
-	}
+    override fun setDoNotEngageZones(doNotEngageZones: List<Rectangle>) {
+        doNotEnganeZones = doNotEngageZones
+    }
 
-	@Override
-	public boolean detect(BufferedImage previousModified, BufferedImage currentModified) {
+    companion object {
+        /**
+         * Default pixel difference intensity threshold (set to 25).
+         */
+        const val DEFAULT_PIXEL_THREASHOLD = 25
 
-		points.clear();
-		thresholds.clear();
+        /**
+         * Default percentage image area fraction threshold (set to 0.2%).
+         */
+        const val DEFAULT_AREA_THREASHOLD = 0.2
 
-		int p = 0;
+        /**
+         * Default max percentage image area fraction threshold (set to 100%).
+         */
+        const val DEFAULT_AREA_THREASHOLD_MAX = 100.0
+        private fun combinePixels(rgb1: Int, rgb2: Int): Int {
 
-		int cogX = 0;
-		int cogY = 0;
+            // first ARGB
+            var a1 = rgb1 shr 24 and 0xff
+            var r1 = rgb1 shr 16 and 0xff
+            var g1 = rgb1 shr 8 and 0xff
+            var b1 = rgb1 and 0xff
 
-		final int w = currentModified.getWidth();
-		final int h = currentModified.getHeight();
+            // second ARGB
+            val a2 = rgb2 shr 24 and 0xff
+            val r2 = rgb2 shr 16 and 0xff
+            val g2 = rgb2 shr 8 and 0xff
+            val b2 = rgb2 and 0xff
+            r1 = clamp(Math.abs(r1 - r2))
+            g1 = clamp(Math.abs(g1 - g2))
+            b1 = clamp(Math.abs(b1 - b2))
 
-		int j = 0;
+            // in case if alpha is enabled (translucent image)
+            if (a1 != 0xff) {
+                a1 = a1 * 0xff / 255
+                val a3 = (255 - a1) * a2 / 255
+                r1 = clamp((r1 * a1 + r2 * a3) / 255)
+                g1 = clamp((g1 * a1 + g2 * a3) / 255)
+                b1 = clamp((b1 * a1 + b2 * a3) / 255)
+                a1 = clamp(a1 + a3)
+            }
+            return a1 shl 24 or (r1 shl 16) or (g1 shl 8) or b1
+        }
 
-		if (previousModified != null) {
-			for (int x = 0; x < w; x++) {
-				for (int y = 0; y < h; y++) {
+        /**
+         * Clamp a value to the range 0..255
+         */
+        private fun clamp(c: Int): Int {
+            if (c < 0) {
+                return 0
+            }
+            return if (c > 255) {
+                255
+            } else c
+        }
 
-					// ignore point if it's in one of do-not-engage zones, simply skip motion
-					// detection for corresponding pixel
+        /**
+         * The default minimum range between each point where motion has been detected
+         */
+        const val DEFAULT_RANGE = 50
 
-					if (isInDoNotEngageZone(x, y)) {
-						continue;
-					}
-
-					int cpx = currentModified.getRGB(x, y);
-					int ppx = previousModified.getRGB(x, y);
-					int pid = combinePixels(cpx, ppx) & 0x000000ff;
-
-					if (pid >= pixelThreshold) {
-						Point pp = new Point(x, y);
-						boolean keep = j < maxPoints;
-
-						if (keep) {
-							for (Point g : points) {
-								if (g.x != pp.x || g.y != pp.y) {
-									if (pp.distance(g) <= range) {
-										keep = false;
-										break;
-									}
-								}
-							}
-						}
-
-						if (keep) {
-							points.add(new Point(x, y));
-							j += 1;
-						}
-
-						cogX += x;
-						cogY += y;
-						p += 1;
-						thresholds.add(pid);
-					}
-				}
-			}
-		}
-
-		area = p * 100d / (w * h);
-
-		if (area >= areaThreshold && area <= areaThresholdMax) {
-			cog = new Point(cogX / p, cogY / p);
-			return true;
-		} else {
-			cog = new Point(w / 2, h / 2);
-			return false;
-		}
-	}
-
-	/**
-	 * Return true if point identified by x and y coordinates is in one of the do-not-engage zones.
-	 * Return false otherwise.
-	 *
-	 * @param x the x coordinate of a point
-	 * @param y the y coordinate of a point
-	 * @return True if point is in one of do-not-engage zones, false otherwise
-	 */
-	private boolean isInDoNotEngageZone(final int x, final int y) {
-		for (final Rectangle zone : doNotEnganeZones) {
-			if (zone.contains(x, y)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	@Override
-	public Point getCog() {
-		return this.cog;
-	}
-
-	@Override
-	public double getArea() {
-		return this.area;
-	}
-
-	/**
-	 * Set pixel intensity difference threshold above which pixel is classified as "moved". Minimum
-	 * value is 0 and maximum is 255. Default value is 10. This value is equal for all RGB
-	 * components difference.
-	 *
-	 * @param threshold the pixel intensity difference threshold
-	 * @see #DEFAULT_PIXEL_THREASHOLD
-	 */
-	public void setPixelThreshold(int threshold) {
-		if (threshold < 0) {
-			throw new IllegalArgumentException("Pixel intensity threshold cannot be negative!");
-		}
-		if (threshold > 255) {
-			throw new IllegalArgumentException("Pixel intensity threshold cannot be higher than 255!");
-		}
-		this.pixelThreshold = threshold;
-	}
-
-	/**
-	 * Set percentage fraction of detected motion area threshold above which it is classified as
-	 * "moved". Minimum value for this is 0 and maximum is 100, which corresponds to full image
-	 * covered by spontaneous motion.
-	 *
-	 * @param threshold the percentage fraction of image area
-	 * @see #DEFAULT_AREA_THREASHOLD
-	 */
-	public void setAreaThreshold(double threshold) {
-		if (threshold < 0) {
-			throw new IllegalArgumentException("Area fraction threshold cannot be negative!");
-		}
-		if (threshold > 100) {
-			throw new IllegalArgumentException("Area fraction threshold cannot be higher than 100!");
-		}
-		this.areaThreshold = threshold;
-	}
-
-	/**
-	 * Set max percentage fraction of detected motion area threshold, below which it is classified
-	 * as "moved". The max is optionally used to help filter false positives caused by sudden
-	 * exposure changes. Minimum value for this is 0 and maximum is 100, which corresponds to full
-	 * image covered by spontaneous motion.
-	 *
-	 * @param threshold the percentage fraction of image area
-	 * @see #DEFAULT_AREA_THREASHOLD_MAX
-	 */
-	public void setMaxAreaThreshold(double threshold) {
-		if (threshold < 0) {
-			throw new IllegalArgumentException("Area fraction threshold cannot be negative!");
-		}
-		if (threshold > 100) {
-			throw new IllegalArgumentException("Area fraction threshold cannot be higher than 100!");
-		}
-		this.areaThresholdMax = threshold;
-	}
-
-	private static int combinePixels(int rgb1, int rgb2) {
-
-		// first ARGB
-
-		int a1 = (rgb1 >> 24) & 0xff;
-		int r1 = (rgb1 >> 16) & 0xff;
-		int g1 = (rgb1 >> 8) & 0xff;
-		int b1 = rgb1 & 0xff;
-
-		// second ARGB
-
-		int a2 = (rgb2 >> 24) & 0xff;
-		int r2 = (rgb2 >> 16) & 0xff;
-		int g2 = (rgb2 >> 8) & 0xff;
-		int b2 = rgb2 & 0xff;
-
-		r1 = clamp(Math.abs(r1 - r2));
-		g1 = clamp(Math.abs(g1 - g2));
-		b1 = clamp(Math.abs(b1 - b2));
-
-		// in case if alpha is enabled (translucent image)
-
-		if (a1 != 0xff) {
-			a1 = a1 * 0xff / 255;
-			int a3 = (255 - a1) * a2 / 255;
-			r1 = clamp((r1 * a1 + r2 * a3) / 255);
-			g1 = clamp((g1 * a1 + g2 * a3) / 255);
-			b1 = clamp((b1 * a1 + b2 * a3) / 255);
-			a1 = clamp(a1 + a3);
-		}
-
-		return (a1 << 24) | (r1 << 16) | (g1 << 8) | b1;
-	}
-
-	/**
-	 * Clamp a value to the range 0..255
-	 */
-	private static int clamp(int c) {
-		if (c < 0) {
-			return 0;
-		}
-		if (c > 255) {
-			return 255;
-		}
-		return c;
-	}
-
-	/**
-	 * ArrayList to store the points for a detected motion
-	 */
-	ArrayList<Point> points = new ArrayList<Point>();
-
-	/**
-	 * Array list to store thresholds for debugging
-	 */
-	ArrayList<Integer> thresholds = new ArrayList<Integer>();
-
-	public ArrayList<Integer> getThresholds() {
-		return this.thresholds;
-	}
-
-	/**
-	 * The default minimum range between each point where motion has been detected
-	 */
-	public static final int DEFAULT_RANGE = 50;
-
-	/**
-	 * The default for the max amount of points that can be detected at one time
-	 */
-	public static final int DEFAULT_MAX_POINTS = 100;
-
-	/**
-	 * The current minimum range between points
-	 */
-	private int range = DEFAULT_RANGE;
-
-	/**
-	 * The current max amount of points
-	 */
-	private int maxPoints = DEFAULT_MAX_POINTS;
-
-	/**
-	 * Set the minimum range between each point detected
-	 * 
-	 * @param i the range to set
-	 */
-	@Override
-	public void setPointRange(int i) {
-		range = i;
-	}
-
-	/**
-	 * Get the current minimum range between each point
-	 * 
-	 * @return The current range
-	 */
-	@Override
-	public int getPointRange() {
-		return range;
-	}
-
-	/**
-	 * Set the max amount of points that can be detected at one time
-	 * 
-	 * @param i The amount of points that can be detected
-	 */
-	@Override
-	public void setMaxPoints(int i) {
-		maxPoints = i;
-	}
-
-	/**
-	 * Get the current max amount of points that can be detected at one time
-	 * 
-	 * @return
-	 */
-	@Override
-	public int getMaxPoints() {
-		return maxPoints;
-	}
-
-	/**
-	 * Returns the currently stored points that have been detected
-	 * 
-	 * @return The current points
-	 */
-	@Override
-	public ArrayList<Point> getPoints() {
-		return points;
-	}
-
-	@Override
-	public void setDoNotEngageZones(List<Rectangle> doNotEngageZones) {
-		this.doNotEnganeZones = doNotEngageZones;
-	}
+        /**
+         * The default for the max amount of points that can be detected at one time
+         */
+        const val DEFAULT_MAX_POINTS = 100
+    }
 }
