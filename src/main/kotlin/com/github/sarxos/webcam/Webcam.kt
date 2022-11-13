@@ -346,9 +346,8 @@ class Webcam(device: WebcamDevice?) {
      *
      * @return Underlying webcam device instance
      */
-    fun getDevice(): WebcamDevice? {
-        assert(device != null)
-        return device
+    fun getDevice(): WebcamDevice {
+        return device!!
     }
 
     /**
@@ -639,8 +638,8 @@ class Webcam(device: WebcamDevice?) {
         }
         assert(driver != null)
         assert(device != null)
-        var t1: Long = 0
-        var t2: Long = 0
+        val t1: Long
+        val t2: Long
 
         // some devices can support direct image buffers, and for those call
         // processor task, and for those which does not support direct image
@@ -690,7 +689,7 @@ class Webcam(device: WebcamDevice?) {
      * @return True if ready, false otherwise
      */
     private val isReady: Boolean
-        private get() {
+        get() {
             assert(disposed != null)
             assert(open != null)
             if (disposed!!.get()) {

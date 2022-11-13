@@ -7,17 +7,18 @@ import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 
 class WebcamGetBufferTask(driver: WebcamDriver?, device: WebcamDevice?) : WebcamTask(driver!!, device) {
+
     @Volatile
     var buffer: ByteBuffer? = null
-    fun getBuffer(): ByteBuffer? {
-        try {
-            process()
-        } catch (e: InterruptedException) {
-            LOG.debug("Image buffer request interrupted", e)
-            return null
+        get() {
+            try {
+                process()
+            } catch (e: InterruptedException) {
+                LOG.debug("Image buffer request interrupted", e)
+                return null
+            }
+            return field
         }
-        return buffer
-    }
 
     override fun handle() {
         val device = device!!

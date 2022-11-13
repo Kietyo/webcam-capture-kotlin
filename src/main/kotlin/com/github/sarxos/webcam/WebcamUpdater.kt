@@ -137,7 +137,7 @@ class WebcamUpdater(webcam: Webcam, delayCalculator: DelayCalculator?) : Runnabl
      */
     fun start() {
         if (running.compareAndSet(false, true)) {
-            image.set(WebcamGetImageTask(getDriver(), webcam!!.getDevice()).image)
+            image.set(WebcamGetImageTask(getDriver(), webcam.getDevice()).image)
             executor = Executors.newSingleThreadScheduledExecutor(THREAD_FACTORY)
             executor!!.execute(this)
             LOG.debug("Webcam updater has been started")
@@ -177,15 +177,13 @@ class WebcamUpdater(webcam: Webcam, delayCalculator: DelayCalculator?) : Runnabl
     }
 
     private fun tick() {
-        if (!webcam!!.isOpen()) {
+        if (!webcam.isOpen()) {
             return
         }
 
         // Calculate time required to fetch 1 picture.
         val driver = getDriver()
         val device = webcam.getDevice()
-        assert(driver != null)
-        assert(device != null)
         var imageOk = false
         val t1 = System.currentTimeMillis()
         try {

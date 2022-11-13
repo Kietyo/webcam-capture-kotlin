@@ -176,8 +176,8 @@ class WebcamPanel @JvmOverloads constructor(
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, antialiasing)
         }
 
-        override fun paintImage(owner: WebcamPanel?, image: BufferedImage?, g2: Graphics2D?) {
-            assert(owner != null)
+        override fun paintImage(panel: WebcamPanel?, image: BufferedImage?, g2: Graphics2D?) {
+            assert(panel != null)
             assert(image != null)
             assert(g2 != null)
             val pw = width

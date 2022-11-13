@@ -77,11 +77,11 @@ class Device : CPPObject {
     }
 
     protected val name: Pointer<Byte?>
-        protected external get
+        external get
     val nameStr: String
         get() = name.cString
     protected val identifier: Pointer<Byte?>
-        protected external get
+        external get
     val identifierStr: String
         get() = identifier.cString
 

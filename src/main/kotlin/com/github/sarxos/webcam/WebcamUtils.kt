@@ -39,12 +39,12 @@ object WebcamUtils {
     }
 
     fun capture(webcam: Webcam, filename: String, format: String) {
-        var filename = filename
+        var filenameCopy = filename
         val ext = "." + format.lowercase(Locale.getDefault())
-        if (!filename.endsWith(ext)) {
-            filename = filename + ext
+        if (!filenameCopy.endsWith(ext)) {
+            filenameCopy += ext
         }
-        capture(webcam, File(filename), format)
+        capture(webcam, File(filenameCopy), format)
     }
 
     fun getImageBytes(webcam: Webcam, format: String?): ByteArray {

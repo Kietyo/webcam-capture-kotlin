@@ -1,64 +1,54 @@
-package com.github.sarxos.webcam;
+package com.github.sarxos.webcam
 
-import java.util.ArrayList;
-import java.util.List;
+class WebcamCompositeDriver(vararg drivers: WebcamDriver) : WebcamDriver, WebcamDiscoverySupport {
+    private val drivers: MutableList<WebcamDriver> = ArrayList()
 
+    init {
+        for (driver in drivers) {
+            this.drivers.add(driver)
+        }
+    }
 
-public class WebcamCompositeDriver implements WebcamDriver, WebcamDiscoverySupport {
+    fun add(driver: WebcamDriver) {
+        drivers.add(driver)
+    }
 
-	private List<WebcamDriver> drivers = new ArrayList<WebcamDriver>();
+    fun getDrivers(): List<WebcamDriver> {
+        return drivers
+    }
 
-	private int scanInterval = -1;
+    override val devices: List<WebcamDevice>
+        get() {
+            val all: MutableList<WebcamDevice> = ArrayList()
+            for (driver in drivers) {
+                all.addAll(driver.devices)
+            }
+            return all
+        }
+    override val isThreadSafe: Boolean
+        get() {
+            var safe = true
+            for (driver in drivers) {
+                safe = safe and driver.isThreadSafe
+                if (!safe) {
+                    break
+                }
+            }
+            return safe
+        }
 
-	public WebcamCompositeDriver(WebcamDriver... drivers) {
-		for (WebcamDriver driver : drivers) {
-			this.drivers.add(driver);
-		}
-	}
+    private var backingScanInterval: Long = -1L
 
-	public void add(WebcamDriver driver) {
-		drivers.add(driver);
-	}
+    override var scanInterval: Long
+        get() {
+            return if (backingScanInterval <= 0) {
+                WebcamDiscoverySupport.DEFAULT_SCAN_INTERVAL
+            } else backingScanInterval
+        }
+        set(value) {
+            backingScanInterval = value
+        }
 
-	public List<WebcamDriver> getDrivers() {
-		return drivers;
-	}
-
-	@Override
-	public List<WebcamDevice> getDevices() {
-		List<WebcamDevice> all = new ArrayList<WebcamDevice>();
-		for (WebcamDriver driver : drivers) {
-			all.addAll(driver.getDevices());
-		}
-		return all;
-	}
-
-	@Override
-	public boolean isThreadSafe() {
-		boolean safe = true;
-		for (WebcamDriver driver : drivers) {
-			safe &= driver.isThreadSafe();
-			if (!safe) {
-				break;
-			}
-		}
-		return safe;
-	}
-
-	public void setScanInterval(int scanInterval) {
-		this.scanInterval = scanInterval;
-	}
-
-	@Override
-	public long getScanInterval() {
-		if (scanInterval <= 0) {
-			return DEFAULT_SCAN_INTERVAL;
-		}
-		return scanInterval;
-	}
-
-	@Override
-	public boolean isScanPossible() {
-		return true;
-	}
+    override val isScanPossible: Boolean
+        get() = true
 }

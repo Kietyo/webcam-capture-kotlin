@@ -19,17 +19,6 @@ class WebcamGetImageTask(driver: WebcamDriver?, device: WebcamDevice?) : WebcamT
             return field
         }
 
-//    @JvmName("getImage1")
-//    fun getImage(): BufferedImage? {
-//        try {
-//            process()
-//        } catch (e: InterruptedException) {
-//            LOG.debug("Interrupted exception", e)
-//            return null
-//        }
-//        return image
-//    }
-
     override fun handle() {
         val device = device!!
         if (!device.isOpen) {

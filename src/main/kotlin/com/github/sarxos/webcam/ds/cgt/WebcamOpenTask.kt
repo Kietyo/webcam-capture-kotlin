@@ -16,9 +16,6 @@ class WebcamOpenTask(driver: WebcamDriver?, device: WebcamDevice?) : WebcamTask(
         if (device.isOpen) {
             return
         }
-        if (device.getResolution() == null) {
-            device.setResolution(device.resolutions[0])
-        }
         LOG.info("Opening webcam {}", device.name)
         device.open()
     }
