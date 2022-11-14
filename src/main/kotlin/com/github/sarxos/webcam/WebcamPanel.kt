@@ -21,7 +21,7 @@ import javax.swing.SwingWorker
  * @author Bartosz Firyn (SarXos)
  */
 class WebcamPanel @JvmOverloads constructor(
-    webcam: Webcam?,
+    webcam: Webcam,
     size: Dimension?,
     start: Boolean,
     supplier: ImageSupplier = DefaultImageSupplier(webcam)
@@ -712,7 +712,7 @@ class WebcamPanel @JvmOverloads constructor(
      * @param webcam the webcam to be used to fetch images
      */
     @JvmOverloads
-    constructor(webcam: Webcam?, start: Boolean = true) : this(webcam, null, start) {
+    constructor(webcam: Webcam, start: Boolean = true) : this(webcam, null, start) {
     }
 
     /**
@@ -727,12 +727,6 @@ class WebcamPanel @JvmOverloads constructor(
      * @see WebcamPanel.setFillArea
      */
     init {
-        requireNotNull(webcam) {
-            String.format(
-                "Webcam argument in %s constructor cannot be null!",
-                javaClass.simpleName
-            )
-        }
         defaultSize = size
         this.webcam = webcam
         updater = ImageUpdater()
@@ -742,9 +736,6 @@ class WebcamPanel @JvmOverloads constructor(
         addPropertyChangeListener("locale", this)
         if (size == null) {
             var r = webcam.viewSize
-            if (r == null) {
-                r = webcam.viewSizes[0]
-            }
             preferredSize = r
         } else {
             preferredSize = size
@@ -925,9 +916,7 @@ class WebcamPanel @JvmOverloads constructor(
 
     override fun propertyChange(evt: PropertyChangeEvent) {
         val lc = evt.newValue as Locale
-        if (lc != null) {
-            rb = WebcamUtils.loadRB(WebcamPanel::class.java)
-        }
+        rb = WebcamUtils.loadRB(WebcamPanel::class.java)
     }
 
     override fun webcamOpen(we: WebcamEvent?) {

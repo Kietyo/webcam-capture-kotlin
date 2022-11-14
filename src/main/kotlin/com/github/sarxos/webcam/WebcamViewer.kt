@@ -15,7 +15,7 @@ import javax.swing.SwingUtilities
  * @author Bartosz Firyn (SarXos)
  */
 class WebcamViewer : JFrame(), Runnable, WebcamListener, WindowListener, Thread.UncaughtExceptionHandler, ItemListener {
-    private var webcam: Webcam? = null
+    private lateinit var webcam: Webcam
     private var panel: WebcamPanel? = null
     private var picker: WebcamPicker? = null
 
@@ -31,12 +31,8 @@ class WebcamViewer : JFrame(), Runnable, WebcamListener, WindowListener, Thread.
         picker = WebcamPicker()
         picker!!.addItemListener(this)
         webcam = picker!!.selectedWebcam
-        if (webcam == null) {
-            LOG.error("No webcams found")
-            System.exit(1)
-        }
-        webcam!!.viewSize = WebcamResolution.VGA.size
-        webcam!!.addWebcamListener(this@WebcamViewer)
+        webcam.viewSize = WebcamResolution.VGA.size
+        webcam.addWebcamListener(this@WebcamViewer)
         panel = WebcamPanel(webcam, false)
         panel!!.isFPSDisplayed = true
         add(picker, BorderLayout.NORTH)

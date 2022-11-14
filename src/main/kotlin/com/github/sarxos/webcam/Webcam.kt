@@ -1,7 +1,6 @@
 package com.github.sarxos.webcam
 
 import com.github.sarxos.webcam.WebcamDevice.FPSSource
-import com.github.sarxos.webcam.WebcamException
 import com.github.sarxos.webcam.WebcamUpdater.DefaultDelayCalculator
 import com.github.sarxos.webcam.WebcamUpdater.DelayCalculator
 import com.github.sarxos.webcam.ds.buildin.WebcamDefaultDriver
@@ -20,7 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * @author Bartosz Firyn (bfiryn)
  */
-class Webcam(device: WebcamDevice?) {
+class Webcam(private var device: WebcamDevice) {
     /**
      * Class used to asynchronously notify all webcam listeners about new image available.
      *
@@ -73,7 +72,7 @@ class Webcam(device: WebcamDevice?) {
     /**
      * Webcam listeners.
      */
-    private val listeners: MutableList<WebcamListener>? = CopyOnWriteArrayList()
+    private val listeners: MutableList<WebcamListener> = CopyOnWriteArrayList()
 
     /**
      * List of custom resolution sizes supported by webcam instance.
@@ -86,19 +85,14 @@ class Webcam(device: WebcamDevice?) {
     private var hook: WebcamShutdownHook? = null
 
     /**
-     * Underlying webcam device.
-     */
-    private var device: WebcamDevice? = null
-
-    /**
      * Is webcam open?
      */
-    private val open: AtomicBoolean? = AtomicBoolean(false)
+    private val open: AtomicBoolean = AtomicBoolean(false)
 
     /**
      * Is webcam already disposed?
      */
-    private val disposed: AtomicBoolean? = AtomicBoolean(false)
+    private val disposed: AtomicBoolean = AtomicBoolean(false)
 
     /**
      * Is non-blocking (asynchronous) access enabled?
@@ -132,33 +126,17 @@ class Webcam(device: WebcamDevice?) {
      */
     @Volatile
     var imageTransformer: WebcamImageTransformer? = null
-    /**
-     * Return webcam lock.
-     *
-     * @return Webcam lock
-     */
+
     /**
      * Lock which denies access to the given webcam when it's already in use by other webcam capture
      * API process or thread.
      */
-    var lock: WebcamLock? = null
+    var lock: WebcamLock = WebcamLock(this)
 
     /**
      * Executor service for image notifications.
      */
     private var notificator: ExecutorService? = null
-
-    /**
-     * Webcam class.
-     *
-     * @param device - device to be used as webcam
-     * @throws IllegalArgumentException when device argument is null
-     */
-    init {
-        requireNotNull(device) { "Webcam device cannot be null" }
-        this.device = device
-        lock = WebcamLock(this)
-    }
 
     /**
      * Asynchronously start new thread which will notify all webcam listeners about the new image
@@ -218,24 +196,23 @@ class Webcam(device: WebcamDevice?) {
      */
     @JvmOverloads
     fun open(async: Boolean = false, delayCalculator: DelayCalculator? = DefaultDelayCalculator()): Boolean {
-        if (open!!.compareAndSet(false, true)) {
-            assert(lock != null)
+        if (open.compareAndSet(false, true)) {
             notificator = Executors.newSingleThreadExecutor(NotificationThreadFactory())
 
             // lock webcam for other Java (only) processes
-            lock!!.lock()
+            lock.lock()
 
             // open webcam device
             val task = WebcamOpenTask(driver, device)
             try {
                 task.open()
             } catch (e: InterruptedException) {
-                lock!!.unlock()
+                lock.unlock()
                 open.set(false)
                 LOG.debug("Thread has been interrupted in the middle of webcam opening process!", e)
                 return false
             } catch (e: WebcamException) {
-                lock!!.unlock()
+                lock.unlock()
                 open.set(false)
                 LOG.debug("Webcam exception when opening", e)
                 throw e
@@ -262,7 +239,7 @@ class Webcam(device: WebcamDevice?) {
 
             // notify listeners
             val we = WebcamEvent(WebcamEventType.OPEN, this)
-            val wli: Iterator<WebcamListener> = listeners!!.iterator()
+            val wli: Iterator<WebcamListener> = listeners.iterator()
             var l: WebcamListener?
             while (wli.hasNext()) {
                 l = wli.next()
@@ -284,9 +261,8 @@ class Webcam(device: WebcamDevice?) {
      * @return True if webcam has been open, false otherwise
      */
     fun close(): Boolean {
-        if (open!!.compareAndSet(true, false)) {
+        if (open.compareAndSet(true, false)) {
             LOG.debug("Closing webcam {}", name)
-            assert(lock != null)
 
             // close webcam
             val task = WebcamCloseTask(driver, device)
@@ -310,11 +286,11 @@ class Webcam(device: WebcamDevice?) {
             removeShutdownHook()
 
             // unlock webcam so other Java processes can start using it
-            lock!!.unlock()
+            lock.unlock()
 
             // notify listeners
             val we = WebcamEvent(WebcamEventType.CLOSED, this)
-            val wli: Iterator<WebcamListener> = listeners!!.iterator()
+            val wli: Iterator<WebcamListener> = listeners.iterator()
             var l: WebcamListener?
             while (wli.hasNext()) {
                 l = wli.next()
@@ -347,7 +323,7 @@ class Webcam(device: WebcamDevice?) {
      * @return Underlying webcam device instance
      */
     fun getDevice(): WebcamDevice {
-        return device!!
+        return device
     }
 
     /**
@@ -355,15 +331,11 @@ class Webcam(device: WebcamDevice?) {
      * full reinstantiation is required.
      */
     fun dispose() {
-        assert(disposed != null)
-        assert(open != null)
         assert(driver != null)
-        assert(device != null)
-        assert(listeners != null)
-        if (!disposed!!.compareAndSet(false, true)) {
+        if (!disposed.compareAndSet(false, true)) {
             return
         }
-        open!!.set(false)
+        open.set(false)
         LOG.info("Disposing webcam {}", name)
         val task = WebcamDisposeTask(driver, device)
         try {
@@ -373,7 +345,7 @@ class Webcam(device: WebcamDevice?) {
             return
         }
         val we = WebcamEvent(WebcamEventType.DISPOSED, this)
-        val wli: Iterator<WebcamListener> = listeners!!.iterator()
+        val wli: Iterator<WebcamListener> = listeners.iterator()
         var l: WebcamListener?
         while (wli.hasNext()) {
             l = wli.next()
@@ -423,7 +395,7 @@ class Webcam(device: WebcamDevice?) {
      * @return true if open, false otherwise
      */
     fun isOpen(): Boolean {
-        return open!!.get()
+        return open.get()
     }
     /**
      * Get current webcam resolution in pixels.
@@ -440,15 +412,14 @@ class Webcam(device: WebcamDevice?) {
      * @see Webcam.setCustomViewSizes
      * @see Webcam.getViewSizes
      */
-    var viewSize: Dimension?
-        get() = device!!.getResolution()
+    var viewSize: Dimension
+        get() = device.getResolution()
         set(size) {
-            requireNotNull(size) { "Resolution cannot be null!" }
-            check(!open!!.get()) { "Cannot change resolution when webcam is open, please close it first" }
+            check(!open.get()) { "Cannot change resolution when webcam is open, please close it first" }
 
             // check if new resolution is the same as current one
             val current = viewSize
-            if (current != null && current.width == size.width && current.height == size.height) {
+            if (current.width == size.width && current.height == size.height) {
                 return
             }
 
@@ -483,7 +454,7 @@ class Webcam(device: WebcamDevice?) {
                 throw IllegalArgumentException(sb.toString())
             }
             LOG.debug("Setting new resolution {}x{}", size.width, size.height)
-            device!!.setResolution(size)
+            device.setResolution(size)
         }
 
     /**
@@ -492,7 +463,7 @@ class Webcam(device: WebcamDevice?) {
      * @return Array of supported dimensions
      */
     val viewSizes: Array<Dimension>
-        get() = device!!.resolutions
+        get() = device.resolutions
 
     /**
      * Set custom resolution. If you are using this method you have to make sure that your webcam
@@ -592,7 +563,6 @@ class Webcam(device: WebcamDevice?) {
                 return null
             }
             assert(driver != null)
-            assert(device != null)
             val t1: Long
             val t2: Long
 
@@ -637,7 +607,6 @@ class Webcam(device: WebcamDevice?) {
             return
         }
         assert(driver != null)
-        assert(device != null)
         val t1: Long
         val t2: Long
 
@@ -690,13 +659,11 @@ class Webcam(device: WebcamDevice?) {
      */
     private val isReady: Boolean
         get() {
-            assert(disposed != null)
-            assert(open != null)
-            if (disposed!!.get()) {
+            if (disposed.get()) {
                 LOG.warn("Cannot get image, webcam has been already disposed")
                 return false
             }
-            if (!open!!.get()) {
+            if (!open.get()) {
                 if (isAutoOpenMode) {
                     open()
                 } else {
@@ -714,10 +681,7 @@ class Webcam(device: WebcamDevice?) {
      * @return Name
      */
     val name: String
-        get() {
-            assert(device != null)
-            return device!!.name
-        }
+        get() = device.name
 
     override fun toString(): String {
         return String.format("Webcam %s", name)
@@ -731,7 +695,7 @@ class Webcam(device: WebcamDevice?) {
      * @throws IllegalArgumentException when argument is null
      */
     fun addWebcamListener(l: WebcamListener): Boolean {
-        return listeners!!.add(l)
+        return listeners.add(l)
     }
 
     /**
@@ -739,8 +703,7 @@ class Webcam(device: WebcamDevice?) {
      */
     val webcamListeners: Array<WebcamListener>
         get() {
-            assert(listeners != null)
-            return listeners!!.toTypedArray()
+            return listeners.toTypedArray()
         }
 
     /**
@@ -748,8 +711,7 @@ class Webcam(device: WebcamDevice?) {
      */
     val webcamListenersCount: Int
         get() {
-            assert(listeners != null)
-            return listeners!!.size
+            return listeners.size
         }
 
     /**
@@ -759,8 +721,7 @@ class Webcam(device: WebcamDevice?) {
      * @return True if listener has been removed, false otherwise
      */
     fun removeWebcamListener(l: WebcamListener): Boolean {
-        assert(listeners != null)
-        return listeners!!.remove(l)
+        return listeners.remove(l)
     }
 
     companion object {
@@ -848,27 +809,10 @@ class Webcam(device: WebcamDevice?) {
 
         /**
          * Get list of webcams to use. This method will wait given time interval for webcam devices to
-         * be discovered. Time argument is given in milliseconds.
-         *
-         * @param timeout the time to wait for webcam devices to be discovered
-         * @return List of webcams existing in the ssytem
-         * @throws TimeoutException when timeout occurs
-         * @throws WebcamException when something is wrong
-         * @throws IllegalArgumentException when timeout is negative
-         * @see Webcam.getWebcams
-         */
-        @Throws(TimeoutException::class, WebcamException::class)
-        fun getWebcams(timeout: Long): List<Webcam> {
-            require(timeout >= 0) { String.format("Timeout cannot be negative (%d)", timeout) }
-            return getWebcams(timeout, TimeUnit.MILLISECONDS)
-        }
-
-        /**
-         * Get list of webcams to use. This method will wait given time interval for webcam devices to
          * be discovered.
          *
          * @param timeout the devices discovery timeout
-         * @param tunit the time unit
+         * @param timeUnit the time unit
          * @return List of webcams
          * @throws TimeoutException when timeout has been exceeded
          * @throws WebcamException when something is wrong
@@ -876,11 +820,10 @@ class Webcam(device: WebcamDevice?) {
          */
         @Synchronized
         @Throws(TimeoutException::class, WebcamException::class)
-        fun getWebcams(timeout: Long, tunit: TimeUnit?): List<Webcam> {
+        fun getWebcams(timeout: Long, timeUnit: TimeUnit = TimeUnit.MILLISECONDS): List<Webcam> {
             require(timeout >= 0) { String.format("Timeout cannot be negative (%d)", timeout) }
-            requireNotNull(tunit) { "Time unit cannot be null!" }
             val discovery = discoveryService!!
-            val webcams = discovery.getWebcams(timeout, tunit)
+            val webcams = discovery.getWebcams(timeout, timeUnit)
             if (!discovery.isRunning()) {
                 discovery.start()
             }
@@ -915,9 +858,8 @@ class Webcam(device: WebcamDevice?) {
          * @see Webcam.getWebcams
          */
         @Throws(TimeoutException::class, WebcamException::class)
-        fun getDefault(timeout: Long, tunit: TimeUnit?): Webcam? {
+        fun getDefault(timeout: Long, tunit: TimeUnit): Webcam? {
             require(timeout >= 0) { String.format("Timeout cannot be negative (%d)", timeout) }
-            requireNotNull(tunit) { "Time unit cannot be null!" }
             val webcams = getWebcams(timeout, tunit)
             if (!webcams.isEmpty()) {
                 return webcams[0]
@@ -934,7 +876,7 @@ class Webcam(device: WebcamDevice?) {
          * @return Webcam driver
          */
         @JvmStatic
-		@Synchronized
+        @Synchronized
         fun getDriver(): WebcamDriver {
             if (driver != null) {
                 return driver!!
@@ -957,8 +899,7 @@ class Webcam(device: WebcamDevice?) {
          * @param wd new webcam driver to be used (e.g. LtiCivil, JFM, FMJ, QTJ)
          * @throws IllegalArgumentException when argument is null
          */
-        fun setDriver(wd: WebcamDriver?) {
-            requireNotNull(wd) { "Webcam driver cannot be null!" }
+        fun setDriver(wd: WebcamDriver) {
             LOG.debug("Setting new capture driver {}", wd)
             resetDriver()
             driver = wd
@@ -974,8 +915,7 @@ class Webcam(device: WebcamDevice?) {
          * @param driverClass new video driver class to use
          * @throws IllegalArgumentException when argument is null
          */
-        fun setDriver(driverClass: Class<out WebcamDriver?>?) {
-            requireNotNull(driverClass) { "Webcam driver class cannot be null!" }
+        fun setDriver(driverClass: Class<out WebcamDriver?>) {
             resetDriver()
             try {
                 driver = driverClass.newInstance()
@@ -1006,8 +946,7 @@ class Webcam(device: WebcamDevice?) {
          * @param clazz webcam video driver class
          * @throws IllegalArgumentException when argument is null
          */
-        fun registerDriver(clazz: Class<out WebcamDriver?>?) {
-            requireNotNull(clazz) { "Webcam driver class to register cannot be null!" }
+        fun registerDriver(clazz: Class<out WebcamDriver?>) {
             DRIVERS_CLASS_LIST.add(clazz)
             registerDriver(clazz.canonicalName)
         }
@@ -1018,8 +957,7 @@ class Webcam(device: WebcamDevice?) {
          * @param clazzName webcam video driver class name
          * @throws IllegalArgumentException when argument is null
          */
-        fun registerDriver(clazzName: String?) {
-            requireNotNull(clazzName) { "Webcam driver class name to register cannot be null!" }
+        fun registerDriver(clazzName: String) {
             DRIVERS_LIST.add(clazzName)
         }
         /**
@@ -1053,13 +991,12 @@ class Webcam(device: WebcamDevice?) {
          * @return True, if listeners list size has been changed, false otherwise
          * @throws IllegalArgumentException when argument is null
          */
-        fun addDiscoveryListener(l: WebcamDiscoveryListener?): Boolean {
-            requireNotNull(l) { "Webcam discovery listener cannot be null!" }
+        fun addDiscoveryListener(l: WebcamDiscoveryListener): Boolean {
             return DISCOVERY_LISTENERS.add(l)
         }
 
         @JvmStatic
-		val discoveryListeners: Array<WebcamDiscoveryListener>
+        val discoveryListeners: Array<WebcamDiscoveryListener>
             get() = DISCOVERY_LISTENERS.toTypedArray()
 
         /**
@@ -1079,11 +1016,11 @@ class Webcam(device: WebcamDevice?) {
          */
         @get:Synchronized
         val discoveryService: WebcamDiscoveryService?
-            get() {
-                if (discoveryServiceRef == null) {
-                    discoveryServiceRef = WebcamDiscoveryService(getDriver())
-                }
-                return discoveryServiceRef
+            get() = if (discoveryServiceRef == null) {
+                discoveryServiceRef = WebcamDiscoveryService(getDriver())
+                discoveryServiceRef
+            } else {
+                discoveryServiceRef
             }
 
         /**
@@ -1091,7 +1028,6 @@ class Webcam(device: WebcamDevice?) {
          * but please **do not invoke it** if you really don't need to.
          */
         protected fun shutdown() {
-
             // stop discovery service
             val discovery = discoveryServiceRef
             discovery?.stop()
@@ -1109,8 +1045,7 @@ class Webcam(device: WebcamDevice?) {
          * @return Webcam with given name or null if not found
          * @throws IllegalArgumentException when name is null
          */
-        fun getWebcamByName(name: String?): Webcam? {
-            requireNotNull(name) { "Webcam name cannot be null" }
+        fun getWebcamByName(name: String): Webcam? {
             for (webcam in webcams) {
                 if (webcam.name == name) {
                     return webcam

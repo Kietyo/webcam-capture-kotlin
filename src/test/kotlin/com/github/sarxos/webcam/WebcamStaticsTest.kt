@@ -144,13 +144,4 @@ class WebcamStaticsTest {
         Webcam.setDriver(DummyDriver())
         assertNull(Webcam.getWebcamByName("DatCameraDoesNotExist"))
     }
-
-    @Test
-    @Throws(InstantiationException::class)
-    fun test_GetWebcamByNameWithNullArgument() {
-        Webcam.setDriver(DummyDriver())
-        assertThrows<IllegalArgumentException> {
-            Webcam.getWebcamByName(null)
-        }
-    }
 }

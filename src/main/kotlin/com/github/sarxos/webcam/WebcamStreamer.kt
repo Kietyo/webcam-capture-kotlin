@@ -19,7 +19,7 @@ import javax.imageio.ImageIO
  *
  * @author Bartoisz Firyn (sarxos)
  */
-class WebcamStreamer(val port: Int, val webcam: Webcam?, fps: Double, start: Boolean) : ThreadFactory, WebcamListener {
+class WebcamStreamer(val port: Int, val webcam: Webcam, fps: Double, start: Boolean) : ThreadFactory, WebcamListener {
     private inner class Acceptor : Runnable {
         override fun run() {
             try {
@@ -165,7 +165,6 @@ class WebcamStreamer(val port: Int, val webcam: Webcam?, fps: Double, start: Boo
     private val started = AtomicBoolean(false)
 
     init {
-        requireNotNull(webcam) { "Webcam for streaming cannot be null" }
         fPS = fps
         delay = (1000 / fps).toLong()
         if (start) {

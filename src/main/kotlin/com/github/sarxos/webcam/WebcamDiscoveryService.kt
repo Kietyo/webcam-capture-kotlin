@@ -33,9 +33,8 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
     private var runner: Thread? = null
 
     @Throws(TimeoutException::class)
-    fun getWebcams(timeout: Long, tunit: TimeUnit?): List<Webcam> {
+    fun getWebcams(timeout: Long, tunit: TimeUnit): List<Webcam> {
         require(timeout >= 0) { "Timeout cannot be negative" }
-        requireNotNull(tunit) { "Time unit cannot be null!" }
         var tmp: List<Webcam>? = null
         synchronized(Webcam::class.java) {
             if (webcams == null) {
