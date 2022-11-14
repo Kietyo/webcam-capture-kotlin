@@ -1,6 +1,5 @@
 package com.github.sarxos.webcam
 
-import com.github.sarxos.webcam.Webcam
 import com.github.sarxos.webcam.Webcam.Companion.discoveryListeners
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -33,7 +32,7 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
     private var runner: Thread? = null
 
     @Throws(TimeoutException::class)
-    fun getWebcams(timeout: Long, tunit: TimeUnit): List<Webcam> {
+    fun getWebcams(timeout: Long, timeUnit: TimeUnit): List<Webcam> {
         require(timeout >= 0) { "Timeout cannot be negative" }
         var tmp: List<Webcam>? = null
         synchronized(Webcam::class.java) {
@@ -43,7 +42,7 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
                 val future = executor.submit(discovery)
                 executor.shutdown()
                 try {
-                    executor.awaitTermination(timeout, tunit)
+                    executor.awaitTermination(timeout, timeUnit)
                     if (future.isDone) {
                         webcams = future.get().toMutableList()
                     } else {
@@ -80,10 +79,10 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
     /**
      * Scan for newly added or already removed webcams.
      */
-    fun scan() {
+    private fun scan() {
         val listeners = discoveryListeners
-        val tmpnew = driver.devices
-        val tmpold: List<WebcamDevice?>? = try {
+        val tmpNewDevices = driver.devices
+        val tmpOldDevices: List<WebcamDevice> = try {
             getDevices(getWebcams(Long.MAX_VALUE, TimeUnit.MILLISECONDS))
         } catch (e: TimeoutException) {
             throw WebcamException(e)
@@ -91,52 +90,50 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
 
         // convert to linked list due to O(1) on remove operation on
         // iterator versus O(n) for the same operation in array list
-        val oldones: MutableList<WebcamDevice?> = LinkedList(tmpold)
-        val newones: MutableList<WebcamDevice> = LinkedList(tmpnew)
-        val oi = oldones.iterator()
-        var ni: MutableIterator<WebcamDevice?>?
-        var od: WebcamDevice?  // old device
-        var nd: WebcamDevice?  // new device
+        val oldDevices: MutableList<WebcamDevice> = LinkedList(tmpOldDevices)
+        val newDevices: MutableList<WebcamDevice> = LinkedList(tmpNewDevices)
+        val oldDeviceItr = oldDevices.iterator()
+        var newDeviceItr: MutableIterator<WebcamDevice?>?
 
         // reduce lists
-        while (oi.hasNext()) {
-            od = oi.next()
-            ni = newones.iterator()
-            while (ni.hasNext()) {
-                nd = ni.next()
+        while (oldDeviceItr.hasNext()) {
+            val oldDevice = oldDeviceItr.next()
+            newDeviceItr = newDevices.iterator()
+            while (newDeviceItr.hasNext()) {
+                val newDevice = newDeviceItr.next()
 
                 // remove both elements, if device name is the same, which
                 // actually means that device is exactly the same
-                if (nd.name == od!!.name) {
-                    ni.remove()
-                    oi.remove()
+                if (newDevice.name == oldDevice.name) {
+                    newDeviceItr.remove()
+                    oldDeviceItr.remove()
                     break
                 }
             }
         }
 
         // if any left in old ones it means that devices has been removed
-        if (oldones.size > 0) {
-            val notified: MutableList<Webcam> = ArrayList()
-            for (device in oldones) {
+        if (oldDevices.size > 0) {
+            val toBeNotified: MutableList<Webcam> = ArrayList()
+            for (device in oldDevices) {
                 for (webcam in webcams!!) {
-                    if (webcam.getDevice().name == device!!.name) {
-                        notified.add(webcam)
+                    if (webcam.getDevice().name == device.name) {
+                        toBeNotified.add(webcam)
                         break
                     }
                 }
             }
-            setCurrentWebcams(tmpnew)
-            for (webcam in notified) {
+            setCurrentWebcams(tmpNewDevices)
+            for (webcam in toBeNotified) {
                 notifyWebcamGone(webcam, listeners)
                 webcam.dispose()
             }
         }
 
         // if any left in new ones it means that devices has been added
-        if (newones.size > 0) {
-            setCurrentWebcams(tmpnew)
-            for (device in newones) {
+        if (newDevices.size > 0) {
+            setCurrentWebcams(tmpNewDevices)
+            for (device in newDevices) {
                 for (webcam in webcams!!) {
                     if (webcam.getDevice().name == device.name) {
                         notifyWebcamFound(webcam, listeners)
@@ -171,15 +168,6 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
                     throw RuntimeException("Problem waiting on monitor", e)
                 }
             }
-//            synchronized(monitor) {
-//                try {
-//                    condition.await(support.scanInterval, TimeUnit.MILLISECONDS)
-//                } catch (e: InterruptedException) {
-//                    return@synchronized
-//                } catch (e: Exception) {
-//                    throw RuntimeException("Problem waiting on monitor", e)
-//                }
-//            }
             scan()
         } while (running.get())
         LOG.debug("Webcam discovery service loop has been stopped")
@@ -301,8 +289,8 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
          *
          * @return List of webcam devices
          */
-        private fun getDevices(webcams: List<Webcam>): List<WebcamDevice?> {
-            val devices: MutableList<WebcamDevice?> = ArrayList()
+        private fun getDevices(webcams: List<Webcam>): List<WebcamDevice> {
+            val devices: MutableList<WebcamDevice> = ArrayList()
             for (webcam in webcams) {
                 devices.add(webcam.getDevice())
             }

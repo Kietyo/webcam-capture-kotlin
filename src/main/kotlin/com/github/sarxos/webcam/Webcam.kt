@@ -290,14 +290,17 @@ class Webcam(private var device: WebcamDevice) {
 
             // notify listeners
             val we = WebcamEvent(WebcamEventType.CLOSED, this)
-            val wli: Iterator<WebcamListener> = listeners.iterator()
-            var l: WebcamListener?
-            while (wli.hasNext()) {
-                l = wli.next()
+            for (listener in listeners) {
                 try {
-                    l.webcamClosed(we)
+                    listener.webcamClosed(we)
+
                 } catch (e: Exception) {
-                    LOG.error(String.format("Notify webcam closed, exception when calling %s listener", l.javaClass), e)
+                    LOG.error(
+                        String.format(
+                            "Notify webcam closed, exception when calling %s listener",
+                            listener.javaClass
+                        ), e
+                    )
                 }
             }
             notificator!!.shutdown()
@@ -336,6 +339,7 @@ class Webcam(private var device: WebcamDevice) {
             return
         }
         open.set(false)
+        lock.unlock()
         LOG.info("Disposing webcam {}", name)
         val task = WebcamDisposeTask(driver, device)
         try {
@@ -345,15 +349,12 @@ class Webcam(private var device: WebcamDevice) {
             return
         }
         val we = WebcamEvent(WebcamEventType.DISPOSED, this)
-        val wli: Iterator<WebcamListener> = listeners.iterator()
-        var l: WebcamListener?
-        while (wli.hasNext()) {
-            l = wli.next()
+        for (listener in listeners) {
             try {
-                l.webcamClosed(we)
-                l.webcamDisposed(we)
+                listener.webcamClosed(we)
+                listener.webcamDisposed(we)
             } catch (e: Exception) {
-                LOG.error(String.format("Notify webcam disposed, exception when calling %s listener", l.javaClass), e)
+                LOG.error(String.format("Notify webcam disposed, exception when calling %s listener", listener.javaClass), e)
             }
         }
         removeShutdownHook()

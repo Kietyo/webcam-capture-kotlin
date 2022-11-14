@@ -28,6 +28,6 @@ interface WebcamDiscoverySupport {
         /**
          * Default webcam discovery scan interval in milliseconds.
          */
-        const val DEFAULT_SCAN_INTERVAL: Long = 3000
+        const val DEFAULT_SCAN_INTERVAL: Long = 2000
     }
 }

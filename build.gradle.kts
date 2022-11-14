@@ -15,6 +15,7 @@ repositories {
 
 dependencies {
     implementation("org.slf4j:slf4j-api:2.0.3")
+    implementation("ch.qos.logback:logback-core:1.4.4")
 //    implementation("com.nativelibs4java:bridj:0.7.0")
     implementation("com.nativelibs4java:bridj:0.7.0")
     testImplementation(kotlin("test"))
