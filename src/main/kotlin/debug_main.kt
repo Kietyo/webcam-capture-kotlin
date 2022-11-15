@@ -2,11 +2,7 @@ import com.github.sarxos.webcam.Webcam
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import java.sql.Time
 import java.time.LocalDateTime
-import java.util.TimeZone
-import kotlin.time.TimeSource
 
 private var numCoroutines = 0
 
