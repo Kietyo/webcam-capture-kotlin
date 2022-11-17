@@ -3,9 +3,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "1.7.20"
 //    application
+    id("maven-publish")
 }
 
-group = "com.github.sarxos.webcam"
+group = "com.github.kietyo.webcam"
 version = "1.0.0"
 
 repositories {
