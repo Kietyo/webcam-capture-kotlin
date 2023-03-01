@@ -1,66 +1,55 @@
-package com.github.sarxos.webcam.util.jh;
+package com.github.sarxos.webcam.util.jh
 
-import java.awt.image.BufferedImage;
+import com.github.sarxos.webcam.util.jhimport.JHBlurFilter
+import org.assertj.core.api.Assertions
+import org.junit.jupiter.api.Test
+import java.awt.image.BufferedImage
 
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
+class JHBlurFilterTest {
+    @Test
+    fun test_filterNonPremultiplied() {
+        val filter = JHBlurFilter()
+        filter.premultiplyAlpha = false
+        val bi1 = BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB)
+        val bi2: BufferedImage = filter.filter(bi1, null)
+        Assertions
+            .assertThat(bi1.width)
+            .isEqualTo(bi2.width)
+        Assertions
+            .assertThat(bi1.height)
+            .isEqualTo(bi2.height)
+        Assertions
+            .assertThat(bi1.type)
+            .isEqualTo(bi2.type)
+    }
 
+    @Test
+    fun test_filterPremultiplied() {
+        val filter = JHBlurFilter()
+        filter.premultiplyAlpha = true
+        val bi1 = BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB)
+        val bi2: BufferedImage = filter.filter(bi1, null)
+        Assertions
+            .assertThat(bi1.width)
+            .isEqualTo(bi2.width)
+        Assertions
+            .assertThat(bi1.height)
+            .isEqualTo(bi2.height)
+        Assertions
+            .assertThat(bi1.type)
+            .isEqualTo(bi2.type)
+    }
 
-public class JHBlurFilterTest {
-
-	@Test
-	public void test_filterNonPremultiplied() {
-
-		final JHBlurFilter filter = new JHBlurFilter();
-		filter.setPremultiplyAlpha(false);
-
-		final BufferedImage bi1 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
-		final BufferedImage bi2 = filter.filter(bi1, null);
-
-		Assertions
-			.assertThat(bi1.getWidth())
-			.isEqualTo(bi2.getWidth());
-		Assertions
-			.assertThat(bi1.getHeight())
-			.isEqualTo(bi2.getHeight());
-		Assertions
-			.assertThat(bi1.getType())
-			.isEqualTo(bi2.getType());
-	}
-
-	@Test
-	public void test_filterPremultiplied() {
-
-		final JHBlurFilter filter = new JHBlurFilter();
-		filter.setPremultiplyAlpha(true);
-
-		final BufferedImage bi1 = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
-		final BufferedImage bi2 = filter.filter(bi1, null);
-
-		Assertions
-			.assertThat(bi1.getWidth())
-			.isEqualTo(bi2.getWidth());
-		Assertions
-			.assertThat(bi1.getHeight())
-			.isEqualTo(bi2.getHeight());
-		Assertions
-			.assertThat(bi1.getType())
-			.isEqualTo(bi2.getType());
-	}
-
-	@Test
-	public void test_setGetPremultiplyAlpha() {
-
-		final JHBlurFilter filter = new JHBlurFilter();
-
-		filter.setPremultiplyAlpha(true);
-		Assertions
-			.assertThat(filter.getPremultiplyAlpha())
-			.isTrue();
-
-		filter.setPremultiplyAlpha(false);
-		Assertions
-			.assertThat(filter.getPremultiplyAlpha())
-			.isFalse();
-	}
+    @Test
+    fun test_setGetPremultiplyAlpha() {
+        val filter = JHBlurFilter()
+        filter.premultiplyAlpha = true
+        Assertions
+            .assertThat(filter.premultiplyAlpha)
+            .isTrue()
+        filter.premultiplyAlpha = false
+        Assertions
+            .assertThat(filter.premultiplyAlpha)
+            .isFalse()
+    }
 }

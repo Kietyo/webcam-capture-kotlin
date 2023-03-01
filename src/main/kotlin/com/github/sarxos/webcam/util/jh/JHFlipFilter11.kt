@@ -49,9 +49,9 @@ class JHFlipFilter @JvmOverloads constructor(operation: Int = FLIP_90CW) : JHFil
 
     override fun filter(
         src: BufferedImage,
-        dst: BufferedImage
+        dst: BufferedImage?
     ): BufferedImage {
-        var dstCopy: BufferedImage = dst
+        var dstCopy: BufferedImage? = dst
         val width = src.width
         val height = src.height
         val inPixels = getRGB(src, 0, 0, width, height, null)
@@ -62,12 +62,10 @@ class JHFlipFilter @JvmOverloads constructor(operation: Int = FLIP_90CW) : JHFil
                 newW = height
                 newH = width
             }
-
             FLIP_90CCW -> {
                 newW = height
                 newH = width
             }
-
             FLIP_180 -> {}
         }
         val newPixels = IntArray(newW * newH)

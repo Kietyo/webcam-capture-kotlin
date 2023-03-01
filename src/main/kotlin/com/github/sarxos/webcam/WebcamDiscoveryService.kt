@@ -9,7 +9,8 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
-    private class WebcamsDiscovery(private val driver: WebcamDriver) : Callable<List<Webcam>>, ThreadFactory {
+    private class WebcamsDiscovery(private val driver: WebcamDriver) : Callable<List<Webcam>>,
+        ThreadFactory {
         @Throws(Exception::class)
         override fun call(): List<Webcam> {
             return toWebcams(driver.devices)
@@ -23,7 +24,8 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
         }
     }
 
-    private val support: WebcamDiscoverySupport? = (if (driver is WebcamDiscoverySupport) driver else null)
+    private val support: WebcamDiscoverySupport? =
+        (if (driver is WebcamDiscoverySupport) driver else null)
 
     @Volatile
     private var webcams: MutableList<Webcam>? = null
@@ -52,15 +54,10 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
                 } catch (e: ExecutionException) {
                     throw WebcamException(e)
                 }
-                if (webcams == null) {
-                    throw TimeoutException(
-                        String.format(
-                            "Webcams discovery timeout (%d ms) has been exceeded",
-                            timeout
-                        )
+                tmp = webcams?.toList()
+                    ?: throw TimeoutException(
+                        "Webcams discovery timeout ($timeout ms) has been exceeded"
                     )
-                }
-                tmp = ArrayList(webcams)
                 if (Webcam.isHandleTermSignal) {
                     WebcamDeallocator.store(webcams!!.toTypedArray())
                 }
@@ -72,7 +69,7 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
                 notifyWebcamFound(webcam, listeners)
             }
         }
-        return Collections.unmodifiableList(webcams)
+        return webcams!!
     }
 
     /**
@@ -89,8 +86,8 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
 
         // convert to linked list due to O(1) on remove operation on
         // iterator versus O(n) for the same operation in array list
-        val oldDevices: MutableList<WebcamDevice> = LinkedList(tmpOldDevices)
-        val newDevices: MutableList<WebcamDevice> = LinkedList(tmpNewDevices)
+        val oldDevices: MutableList<WebcamDevice> = tmpOldDevices.toMutableList()
+        val newDevices: MutableList<WebcamDevice> = tmpNewDevices.toMutableList()
         val oldDeviceItr = oldDevices.iterator()
         var newDeviceItr: MutableIterator<WebcamDevice?>?
 
@@ -144,7 +141,6 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
     }
 
     override fun run() {
-
         // do not run if driver does not support discovery
         if (support == null) {
             return
@@ -202,7 +198,6 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
      * Start discovery service.
      */
     fun start() {
-
         // if configured to not start, then simply return
         if (!enabled.get()) {
             LOG.info("Discovery service has been disabled and thus it will not be started")
@@ -211,7 +206,10 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
 
         // capture driver does not support discovery - nothing to do
         if (support == null) {
-            LOG.info("Discovery will not run - driver {} does not support this feature", driver.javaClass.simpleName)
+            LOG.info(
+                "Discovery will not run - driver {} does not support this feature",
+                driver.javaClass.simpleName
+            )
             return
         }
 
@@ -237,17 +235,6 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
     }
 
     /**
-     * Webcam discovery service will be automatically started if it's enabled,
-     * otherwise, when set to disabled, it will never start, even when user try
-     * to run it.
-     *
-     * @param enabled the parameter controlling if discovery shall be started
-     */
-    fun setEnabled(enabled: Boolean) {
-        this.enabled.set(enabled)
-    }
-
-    /**
      * Cleanup.
      */
     fun shutdown() {
@@ -261,8 +248,6 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
             webcam.dispose()
         }
         synchronized(Webcam::class.java) {
-
-
             // clear webcams list
             webcams!!.clear()
 
@@ -302,7 +287,12 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
                 try {
                     l.webcamGone(event)
                 } catch (e: Exception) {
-                    LOG.error(String.format("Webcam gone, exception when calling listener %s", l.javaClass), e)
+                    LOG.error(
+                        String.format(
+                            "Webcam gone, exception when calling listener %s",
+                            l.javaClass
+                        ), e
+                    )
                 }
             }
         }
@@ -313,7 +303,12 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
                 try {
                     l.webcamFound(event)
                 } catch (e: Exception) {
-                    LOG.error(String.format("Webcam found, exception when calling listener %s", l.javaClass), e)
+                    LOG.error(
+                        String.format(
+                            "Webcam found, exception when calling listener %s",
+                            l.javaClass
+                        ), e
+                    )
                 }
             }
         }

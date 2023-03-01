@@ -535,10 +535,6 @@ class Webcam(private val device: WebcamDevice) {
                 image
             }
         }
-    val isImageNew: Boolean
-        get() = if (asynchronous) {
-            updater!!.isImageNew
-        } else true
     val fPS: Double
         get() = if (asynchronous) {
             updater!!.fPS
@@ -756,13 +752,7 @@ class Webcam(private val device: WebcamDevice) {
          *
          * @return Discovery service or null if not yet created
          */
-        /**
-         * Webcam discovery service.
-         */
-        @get:Synchronized
-        @Volatile
-        var discoveryServiceRef: WebcamDiscoveryService? = null
-            private set
+
 
         /**
          * Is automated deallocation on TERM signal enabled.
@@ -822,7 +812,7 @@ class Webcam(private val device: WebcamDevice) {
         @Synchronized
         @Throws(TimeoutException::class, WebcamException::class)
         fun getWebcams(timeout: NonNegativeTimeout, timeUnit: TimeUnit = TimeUnit.MILLISECONDS): List<Webcam> {
-            val discovery = discoveryService!!
+            val discovery = discoveryService
             val webcams = discovery.getWebcams(timeout, timeUnit)
             if (!discovery.isRunning()) {
                 discovery.start()
@@ -982,30 +972,17 @@ class Webcam(private val device: WebcamDevice) {
                 deallocOnTermSignal = on
             }
 
-        /**
-         * Add new webcam discovery listener.
-         *
-         * @param l the listener to be added
-         * @return True, if listeners list size has been changed, false otherwise
-         * @throws IllegalArgumentException when argument is null
-         */
-        fun addDiscoveryListener(l: WebcamDiscoveryListener): Boolean {
-            return DISCOVERY_LISTENERS.add(l)
-        }
-
         @JvmStatic
         val discoveryListeners: Array<WebcamDiscoveryListener>
             get() = DISCOVERY_LISTENERS.toTypedArray()
 
         /**
-         * Remove discovery listener
-         *
-         * @param l the listener to be removed
-         * @return True if listeners list contained the specified element
+         * Webcam discovery service.
          */
-        fun removeDiscoveryListener(l: WebcamDiscoveryListener): Boolean {
-            return DISCOVERY_LISTENERS.remove(l)
-        }
+        @get:Synchronized
+        @Volatile
+        var discoveryServiceRef: WebcamDiscoveryService? = null
+            private set
 
         /**
          * Return discovery service.
@@ -1013,26 +990,13 @@ class Webcam(private val device: WebcamDevice) {
          * @return Discovery service
          */
         @get:Synchronized
-        val discoveryService: WebcamDiscoveryService?
+        val discoveryService: WebcamDiscoveryService
             get() = if (discoveryServiceRef == null) {
                 discoveryServiceRef = WebcamDiscoveryService(getDriver())
                 discoveryServiceRef
             } else {
                 discoveryServiceRef
-            }
-
-        /**
-         * Shutdown webcam framework. This method should be used **ONLY** when you are exiting JVM,
-         * but please **do not invoke it** if you really don't need to.
-         */
-        protected fun shutdown() {
-            // stop discovery service
-            val discovery = discoveryServiceRef
-            discovery?.stop()
-
-            // stop processor
-            WebcamProcessor.instance.shutdown()
-        }
+            }!!
 
         /**
          * Return webcam with given name or null if no device with given name has been found. Please
@@ -1044,12 +1008,7 @@ class Webcam(private val device: WebcamDevice) {
          * @throws IllegalArgumentException when name is null
          */
         fun getWebcamByName(name: String): Webcam? {
-            for (webcam in webcams) {
-                if (webcam.name == name) {
-                    return webcam
-                }
-            }
-            return null
+            return webcams.firstOrNull { it.name == name }
         }
     }
 }
