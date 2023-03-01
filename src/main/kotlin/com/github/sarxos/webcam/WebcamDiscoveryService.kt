@@ -32,8 +32,7 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
     private var runner: Thread? = null
 
     @Throws(TimeoutException::class)
-    fun getWebcams(timeout: Long, timeUnit: TimeUnit): List<Webcam> {
-        require(timeout >= 0) { "Timeout cannot be negative" }
+    fun getWebcams(timeout: NonNegativeTimeout, timeUnit: TimeUnit): List<Webcam> {
         var tmp: List<Webcam>? = null
         synchronized(Webcam::class.java) {
             if (webcams == null) {
@@ -42,7 +41,7 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
                 val future = executor.submit(discovery)
                 executor.shutdown()
                 try {
-                    executor.awaitTermination(timeout, timeUnit)
+                    executor.awaitTermination(timeout.value, timeUnit)
                     if (future.isDone) {
                         webcams = future.get().toMutableList()
                     } else {
@@ -83,7 +82,7 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
         val listeners = discoveryListeners
         val tmpNewDevices = driver.devices
         val tmpOldDevices: List<WebcamDevice> = try {
-            getDevices(getWebcams(Long.MAX_VALUE, TimeUnit.MILLISECONDS))
+            getDevices(getWebcams(NonNegativeTimeout.MAX, TimeUnit.MILLISECONDS))
         } catch (e: TimeoutException) {
             throw WebcamException(e)
         }

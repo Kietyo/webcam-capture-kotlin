@@ -19,13 +19,13 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * @author Bartosz Firyn (bfiryn)
  */
-class Webcam(private var device: WebcamDevice) {
+class Webcam(private val device: WebcamDevice) {
     /**
      * Class used to asynchronously notify all webcam listeners about new image available.
      *
      * @author Bartosz Firyn (sarxos)
      */
-    private class ImageNotification
+    class ImageNotification
     /**
      * Create new notification.
      *
@@ -710,7 +710,7 @@ class Webcam(private var device: WebcamDevice) {
     /**
      * @return Number of webcam listeners
      */
-    val webcamListenersCount: Int
+    private val webcamListenersCount: Int
         get() {
             return listeners.size
         }
@@ -729,7 +729,7 @@ class Webcam(private var device: WebcamDevice) {
         /**
          * Logger instance.
          */
-        private val LOG = LoggerFactory.getLogger(Webcam::class.java)
+        private val LOG = LoggerFactory.getLogger(Webcam::class.java)!!
 
         /**
          * List of driver classes names to search for.
@@ -803,7 +803,7 @@ class Webcam(private var device: WebcamDevice) {
             get() =// timeout exception below will never be caught since user would have to
                 // wait around three hundreds billion years for it to occur
                 try {
-                    getWebcams(Long.MAX_VALUE)
+                    getWebcams(NonNegativeTimeout.MAX)
                 } catch (e: TimeoutException) {
                     throw RuntimeException(e)
                 }
@@ -821,8 +821,7 @@ class Webcam(private var device: WebcamDevice) {
          */
         @Synchronized
         @Throws(TimeoutException::class, WebcamException::class)
-        fun getWebcams(timeout: Long, timeUnit: TimeUnit = TimeUnit.MILLISECONDS): List<Webcam> {
-            require(timeout >= 0) { String.format("Timeout cannot be negative (%d)", timeout) }
+        fun getWebcams(timeout: NonNegativeTimeout, timeUnit: TimeUnit = TimeUnit.MILLISECONDS): List<Webcam> {
             val discovery = discoveryService!!
             val webcams = discovery.getWebcams(timeout, timeUnit)
             if (!discovery.isRunning()) {
@@ -842,8 +841,7 @@ class Webcam(private var device: WebcamDevice) {
          * @see Webcam.getWebcams
          */
         @Throws(TimeoutException::class, WebcamException::class)
-        fun getDefault(timeout: Long = Long.MAX_VALUE): Webcam? {
-            require(timeout >= 0) { String.format("Timeout cannot be negative (%d)", timeout) }
+        fun getDefault(timeout: NonNegativeTimeout = NonNegativeTimeout.MAX): Webcam? {
             return getDefault(timeout, TimeUnit.MILLISECONDS)
         }
 
@@ -859,10 +857,9 @@ class Webcam(private var device: WebcamDevice) {
          * @see Webcam.getWebcams
          */
         @Throws(TimeoutException::class, WebcamException::class)
-        fun getDefault(timeout: Long, tunit: TimeUnit): Webcam? {
-            require(timeout >= 0) { String.format("Timeout cannot be negative (%d)", timeout) }
+        fun getDefault(timeout: NonNegativeTimeout, tunit: TimeUnit): Webcam? {
             val webcams = getWebcams(timeout, tunit)
-            if (!webcams.isEmpty()) {
+            if (webcams.isNotEmpty()) {
                 return webcams[0]
             }
             LOG.warn("No webcam has been detected!")
@@ -916,7 +913,7 @@ class Webcam(private var device: WebcamDevice) {
          * @param driverClass new video driver class to use
          * @throws IllegalArgumentException when argument is null
          */
-        fun setDriver(driverClass: Class<out WebcamDriver?>) {
+        fun setDriver(driverClass: Class<out WebcamDriver>) {
             resetDriver()
             try {
                 driver = driverClass.newInstance()
