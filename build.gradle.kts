@@ -17,8 +17,8 @@ repositories {
 dependencies {
     implementation("org.slf4j:slf4j-api:2.0.3")
     implementation("ch.qos.logback:logback-core:1.4.4")
-//    implementation("com.nativelibs4java:bridj:0.7.0")
     implementation("com.nativelibs4java:bridj:0.7.0")
+//    implementation("com.nativelibs4java:bridj:0.6.2")
     testImplementation(kotlin("test"))
 //    testImplementation("junit:junit:4.13.1")
     testImplementation("org.assertj:assertj-core:1.6.1")
