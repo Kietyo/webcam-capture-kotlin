@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.7.20"
+    kotlin("jvm")
 //    application
     id("maven-publish")
 }
@@ -17,8 +17,8 @@ repositories {
 dependencies {
     implementation("org.slf4j:slf4j-api:2.0.3")
     implementation("ch.qos.logback:logback-core:1.4.4")
-//    implementation("com.nativelibs4java:bridj:0.7.0")
     implementation("com.nativelibs4java:bridj:0.7.0")
+//    implementation("com.nativelibs4java:bridj:0.6.2")
     testImplementation(kotlin("test"))
 //    testImplementation("junit:junit:4.13.1")
     testImplementation("org.assertj:assertj-core:1.6.1")
@@ -30,6 +30,10 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 }
 
 tasks.withType<KotlinCompile> {
