@@ -14,7 +14,7 @@ import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
-open class WebcamDefaultDevice constructor(device: Device) : WebcamDevice, WebcamDevice.BufferAccess, Runnable,
+open class WebcamDefaultDevice(device: Device) : WebcamDevice, WebcamDevice.BufferAccess, Runnable,
     FPSSource {
     private inner class NextFrameTask(device: WebcamDevice?) : WebcamTask(device!!) {
         private val result = AtomicInteger(0)
