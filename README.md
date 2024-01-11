@@ -2,7 +2,7 @@
 
 Kotlin port of `https://github.com/sarxos/webcam-capture`.
 
-# How to use
+# How to include dependency to your project (JVM only)
 
 1. Clone this repo
 2. In the dependent project, include this library like so in `settings.gradle.kts`:
@@ -17,6 +17,51 @@ dependencies {
     implementation(project(":webcam-capture-kotlin"))
 }
 ```
+
+# Example Usage
+
+## Get list of available webcams
+
+```kotlin
+val webcamNames = Webcam.webcams.map { it.name }
+println("Webcams available:")
+webcamNames.forEachIndexed { index, s ->
+    println("$index: $s")
+}
+```
+
+## Get image from webcam
+
+```kotlin
+// Assuming webcam supports 720p/1080p
+val nonStandardResolutions = arrayOf(
+    WebcamResolution.HD.size,
+    WebcamResolution.FHD.size,
+)
+
+val webcam: Webcam = Webcam.getWebcamByName("<Webcam name>")!!
+webcam.customViewSizes = nonStandardResolutions
+webcam.viewSize = WebcamResolution.FHD.size
+
+val image = webcam.image
+```
+
+More examples: https://github.com/sarxos/webcam-capture?tab=readme-ov-file#more-examples
+
+# Possible Issues
+
+```shell
+Caused by: java.lang.RuntimeException: Library 'OpenIMAJGrabber' was not loaded successfully from file 'C:\Users\User\AppData\Local\Temp\BridJExtractedLibraries890841975285135309\OpenIMAJGrabber.dll'
+	at com.sparrowwallet.merged.module@1.4.0/org.bridj.BridJ.getNativeLibrary(Unknown Source)
+```
+
+To fix, have to install:
+
+[Microsoft Visual C++ 2010 Service Pack 1 Redistributable Package MFC Security Update](https://www.microsoft.com/en-us/download/details.aspx?id=26999)
+
+Particularly: vcredist_x64.exe
+
+Fix was from: https://github.com/openimaj/openimaj/issues/311
 
 # License from https://github.com/sarxos/webcam-capture
 
