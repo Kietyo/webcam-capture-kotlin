@@ -2,6 +2,21 @@
 
 Kotlin port of `https://github.com/sarxos/webcam-capture`.
 
+# How to use
+
+1. Clone this repo
+2. In the dependent project, include this library like so in `settings.gradle.kts`:
+```kotlin
+include("webcam-capture-kotlin")
+project(":webcam-capture-kotlin").projectDir = file("C:\\Users\\kietm\\GitHub\\webcam-capture-kotlin")
+```
+3. In your `build.gradle.kts`, add as a dependency like so:
+```
+dependencies {
+    // OTHER LINES OMITTED
+    implementation(project(":webcam-capture-kotlin"))
+}
+```
 
 # License from https://github.com/sarxos/webcam-capture
 
