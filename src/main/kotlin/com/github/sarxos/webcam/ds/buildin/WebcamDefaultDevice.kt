@@ -375,9 +375,7 @@ open class WebcamDefaultDevice(device: Device) : WebcamDevice, WebcamDevice.Buff
          */
         private val BAND_OFFSETS = intArrayOf(0, 1, 2)
 
-        /**
-         * Number of bytes in each pixel.
-         */
+        // Number of bits per component (RGB) for a pixel.
         private val BITS = intArrayOf(8, 8, 8)
 
         /**
