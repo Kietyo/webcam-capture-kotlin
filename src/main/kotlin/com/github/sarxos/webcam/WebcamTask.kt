@@ -7,8 +7,8 @@ abstract class WebcamTask(threadSafe: Boolean, val device: WebcamDevice?) {
     private var processor: WebcamProcessor = WebcamProcessor.instance
     var throwable: Throwable? = null
 
-    constructor(driver: WebcamDriver, device: WebcamDevice?) : this(driver.isThreadSafe, device) {}
-    constructor(device: WebcamDevice) : this(false, device) {}
+    constructor(driver: WebcamDriver, device: WebcamDevice?) : this(driver.isThreadSafe, device)
+    constructor(device: WebcamDevice) : this(false, device)
 
     /**
      * Process task by processor thread.

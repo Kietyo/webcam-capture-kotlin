@@ -42,7 +42,14 @@ open class WebcamDefaultDevice(device: Device) : WebcamDevice, WebcamDevice.Buff
      */
     private var timeout = 5000
     private var grabber: OpenIMAJGrabber? = null
+    private var preallocatedBytes = ByteArray(0)
     private var size: Dimension? = null
+        set(value) {
+            if (value != null) {
+                preallocatedBytes = ByteArray(value.width * value.height * 3)
+            }
+            field = value
+        }
     private lateinit var smodel: ComponentSampleModel
     private val cmodel: ColorModel = ComponentColorModel(COLOR_SPACE, BITS, false, false, Transparency.OPAQUE, DATA_TYPE)
     private var failOnSizeMismatch = false
@@ -156,8 +163,9 @@ open class WebcamDefaultDevice(device: Device) : WebcamDevice, WebcamDevice.Buff
                 LOG.error("Images bytes buffer is null!")
                 return null
             }
-            val bytes = ByteArray(size!!.width * size!!.height * 3)
+            val bytes = preallocatedBytes
             val data = arrayOf(bytes)
+            // Populates `bytes` with bytes from the buffer.
             buffer[bytes]
             val dbuf = DataBufferByte(data, bytes.size, OFFSET)
             val raster = Raster.createWritableRaster(smodel, dbuf, null)
