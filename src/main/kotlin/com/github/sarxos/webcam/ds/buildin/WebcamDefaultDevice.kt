@@ -42,11 +42,11 @@ open class WebcamDefaultDevice(device: Device) : WebcamDevice, WebcamDevice.Buff
      */
     private var timeout = 5000
     private var grabber: OpenIMAJGrabber? = null
-    private var preallocatedBytes = ByteArray(0)
+    override var preallocatedImageBytes = ByteArray(0)
     private var size: Dimension? = null
         set(value) {
             if (value != null) {
-                preallocatedBytes = ByteArray(value.width * value.height * 3)
+                preallocatedImageBytes = ByteArray(value.width * value.height * 3)
             }
             field = value
         }
@@ -90,7 +90,7 @@ open class WebcamDefaultDevice(device: Device) : WebcamDevice, WebcamDevice.Buff
         this.size = size
     }
 
-    override val imageBytes: ByteBuffer?
+    override val imageByteBuffer: ByteBuffer?
         get() {
             if (disposed.get()) {
                 LOG.debug("Webcam is disposed, image will be null")
@@ -158,12 +158,12 @@ open class WebcamDefaultDevice(device: Device) : WebcamDevice, WebcamDevice.Buff
 
     override val image: BufferedImage?
         get() {
-            val buffer = imageBytes
+            val buffer = imageByteBuffer
             if (buffer == null) {
                 LOG.error("Images bytes buffer is null!")
                 return null
             }
-            val bytes = preallocatedBytes
+            val bytes = preallocatedImageBytes
             val data = arrayOf(bytes)
             // Populates `bytes` with bytes from the buffer.
             buffer[bytes]

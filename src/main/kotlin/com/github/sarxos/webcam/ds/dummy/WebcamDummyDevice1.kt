@@ -27,6 +27,9 @@ class WebcamDummyDevice(number: Int) : WebcamDevice {
         backingResolution = size
     }
 
+    override val preallocatedImageBytes: ByteArray
+        get() = TODO("Not yet implemented")
+
     override val name: String = "Dummy Webcam $number"
 
 

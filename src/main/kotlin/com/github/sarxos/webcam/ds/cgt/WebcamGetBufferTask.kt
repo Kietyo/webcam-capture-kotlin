@@ -28,7 +28,7 @@ class WebcamGetBufferTask(driver: WebcamDriver?, device: WebcamDevice?) : Webcam
         if (device !is WebcamDevice.BufferAccess) {
             return
         }
-        buffer = (device as WebcamDevice.BufferAccess).imageBytes
+        buffer = (device as WebcamDevice.BufferAccess).imageByteBuffer
     }
 
     companion object {

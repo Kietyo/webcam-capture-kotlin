@@ -29,7 +29,7 @@ interface WebcamDevice {
          *
          * @return Bytes buffer
          */
-        val imageBytes: ByteBuffer?
+        val imageByteBuffer: ByteBuffer?
 
         /**
          * Copy the underlying image memory into the target buffer passed as the
@@ -69,6 +69,8 @@ interface WebcamDevice {
          */
         fun setParameters(parameters: Map<String?, *>?)
     }
+
+    val preallocatedImageBytes: ByteArray
 
     /**
      * Get device name.

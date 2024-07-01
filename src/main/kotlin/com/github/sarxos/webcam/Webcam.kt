@@ -535,12 +535,18 @@ class Webcam(private val device: WebcamDevice) {
                 image
             }
         }
+
+    val preallocatedImageBytes : ByteArray get() = device.preallocatedImageBytes
+
     val fPS: Double
         get() = if (asynchronous) {
             updater!!.fPS
         } else {
             fps
         }// some devices can support direct image buffers, and for those call
+
+
+
     // processor task, and for those which does not support direct image
     // buffers, just convert image to RGB byte array
     /**
@@ -554,7 +560,7 @@ class Webcam(private val device: WebcamDevice) {
      *
      * @return Byte buffer
      */
-    val imageBytes: ByteBuffer?
+    val imageByteBuffer: ByteBuffer?
         get() {
             if (!isReady) {
                 return null
