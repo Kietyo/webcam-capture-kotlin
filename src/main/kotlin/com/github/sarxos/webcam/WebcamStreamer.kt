@@ -80,7 +80,7 @@ class WebcamStreamer(val port: Int, val webcam: Webcam, fps: Double, start: Bool
                     sb.append(CRLF)
                     bos.write(sb.toString().toByteArray())
                     do {
-                        if (!webcam!!.isOpen() || socket.isInputShutdown || socket.isClosed) {
+                        if (!webcam.isOpen() || socket.isInputShutdown || socket.isClosed) {
                             br.close()
                             bos.close()
                             return
@@ -181,7 +181,7 @@ class WebcamStreamer(val port: Int, val webcam: Webcam, fps: Double, start: Bool
 
     fun start() {
         if (started.compareAndSet(false, true)) {
-            webcam!!.addWebcamListener(this)
+            webcam.addWebcamListener(this)
             webcam.open()
             executor.execute(Acceptor())
         }
@@ -190,7 +190,7 @@ class WebcamStreamer(val port: Int, val webcam: Webcam, fps: Double, start: Bool
     fun stop() {
         if (started.compareAndSet(true, false)) {
             executor.shutdown()
-            webcam!!.removeWebcamListener(this)
+            webcam.removeWebcamListener(this)
             webcam.close()
         }
     }

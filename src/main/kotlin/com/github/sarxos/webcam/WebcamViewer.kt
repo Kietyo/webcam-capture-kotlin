@@ -93,15 +93,12 @@ class WebcamViewer : JFrame(), Runnable, WebcamListener, WindowListener, Thread.
         if (e.item === webcam) {
             return
         }
-        if (webcam == null) {
-            return
-        }
         val tmp = panel
         remove(panel)
-        webcam!!.removeWebcamListener(this)
+        webcam.removeWebcamListener(this)
         webcam = e.item as Webcam
-        webcam!!.viewSize = WebcamResolution.VGA.size
-        webcam!!.addWebcamListener(this)
+        webcam.viewSize = WebcamResolution.VGA.size
+        webcam.addWebcamListener(this)
         println("selected " + webcam!!.name)
         panel = WebcamPanel(webcam, false)
         add(panel, BorderLayout.CENTER)

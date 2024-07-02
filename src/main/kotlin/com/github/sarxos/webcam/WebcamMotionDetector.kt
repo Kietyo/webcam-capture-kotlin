@@ -362,8 +362,8 @@ class WebcamMotionDetector(
             var cog = detectorAlgorithm.cog
             if (cog == null) {
                 // detectorAlgorithm hasn't been called so far - get image center
-                val w = webcam!!.viewSize!!.width
-                val h = webcam.viewSize!!.height
+                val w = webcam!!.viewSize.width
+                val h = webcam.viewSize.height
                 cog = Point(w / 2, h / 2)
             }
             return cog
