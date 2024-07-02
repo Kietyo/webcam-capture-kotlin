@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 open class WebcamDefaultDevice(device: Device) : WebcamDevice, WebcamDevice.BufferAccess, Runnable,
     FPSSource {
-    private inner class NextFrameTask(device: WebcamDevice?) : WebcamTask(device!!) {
+    private inner class NextFrameTask(device: WebcamDefaultDevice) : WebcamTask(device) {
         private val result = AtomicInteger(0)
         fun nextFrame(): Int {
             try {

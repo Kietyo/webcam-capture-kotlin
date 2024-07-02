@@ -98,7 +98,7 @@ class Webcam(private val device: WebcamDevice) {
      * Is non-blocking (asynchronous) access enabled?
      */
     @Volatile
-    private var asynchronous = false
+    var asynchronous = false
 
     /**
      * Current FPS.
