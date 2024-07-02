@@ -8,6 +8,8 @@ import java.awt.image.BufferedImage
 import java.util.concurrent.atomic.AtomicInteger
 
 class DummyDevice(override val resolutions: Array<Dimension> = RESOLUTIONS) : WebcamDevice {
+    override val preallocatedImageBytes: ByteArray
+        get() = TODO("Not yet implemented")
     override val name = DummyDevice::class.java.simpleName + "-" + INSTANCE_NUM.incrementAndGet()
     private var size = resolutions[0]
     override var isOpen = false
