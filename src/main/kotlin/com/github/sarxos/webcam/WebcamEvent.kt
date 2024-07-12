@@ -8,7 +8,8 @@ import java.util.*
  *
  * @author Bartosz Firyn (SarXos)
  */
-class WebcamEvent @JvmOverloads constructor(type: WebcamEventType?, w: Webcam?, image: BufferedImage? = null) :
+class WebcamEvent @JvmOverloads constructor(
+    val type: WebcamEventType, w: Webcam?, val image: BufferedImage? = null) :
     EventObject(w) {
     /**
      * Return image acquired by webcam. This method will return not-null object
@@ -17,20 +18,7 @@ class WebcamEvent @JvmOverloads constructor(type: WebcamEventType?, w: Webcam?, 
      *
      * @return Acquired image
      */
-    /**
-     * Image acquired from webcam
-     */
-    var image: BufferedImage? = null
-    /**
-     * Return event type.
-     *
-     * @return Event type
-     * @see WebcamEventType
-     */
-    /**
-     * Event type.
-     */
-    var type: WebcamEventType? = null
+
     /**
      * Webcam event.
      *
@@ -38,16 +26,6 @@ class WebcamEvent @JvmOverloads constructor(type: WebcamEventType?, w: Webcam?, 
      * @param w the webcam object
      * @param image the image acquired from webcam
      */
-    /**
-     * Webcam event.
-     *
-     * @param type the event type
-     * @param w the webcam object
-     */
-    init {
-        this.type = type
-        this.image = image
-    }
 
     override fun getSource(): Webcam {
         return super.getSource() as Webcam

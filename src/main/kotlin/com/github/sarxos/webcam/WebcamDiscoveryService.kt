@@ -180,7 +180,6 @@ class WebcamDiscoveryService(private val driver: WebcamDriver) : Runnable {
      * Stop discovery service.
      */
     fun stop() {
-
         // return if not running
         if (!running.compareAndSet(true, false)) {
             return

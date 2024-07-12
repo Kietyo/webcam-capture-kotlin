@@ -287,7 +287,7 @@ enum class WebcamResolution(width: Int, height: Int) {
     /**
      * Resolution size.
      */
-    var size: Dimension = Dimension(width, height)
+    val size: Dimension = Dimension(width, height)
 
     val pixelsCount: Int
         get() = size.width * size.height
