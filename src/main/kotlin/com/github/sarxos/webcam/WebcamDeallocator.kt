@@ -22,12 +22,12 @@ internal open class WebcamDeallocator
             try {
                 w.dispose()
             } catch (t: Throwable) {
-                caugh(t)
+                caught(t)
             }
         }
     }
 
-    private fun caugh(t: Throwable) {
+    private fun caught(t: Throwable) {
         val f = File(String.format("webcam-capture-hs-%s", System.currentTimeMillis()))
         var ps: PrintStream? = null
         try {

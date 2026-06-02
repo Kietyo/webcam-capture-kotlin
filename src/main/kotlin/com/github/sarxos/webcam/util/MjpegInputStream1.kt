@@ -11,7 +11,7 @@ import javax.imageio.ImageIO
  *
  * @author Bartosz Firyn (sarxos)
  */
-class MjpegInputStream(inputStream: InputStream?) :
+class MjpegInputStream(inputStream: InputStream) :
     DataInputStream(BufferedInputStream(inputStream, FRAME_MAX_LENGTH)) {
     /**
      * The first two bytes of every JPEG frame are the Start Of Image (SOI) marker values FFh D8h.
@@ -64,7 +64,7 @@ class MjpegInputStream(inputStream: InputStream?) :
                     var line: String?
                     while (br.readLine().also { line = it } != null) {
                         if (line!!.lowercase(Locale.getDefault()).startsWith(CONTENT_LENGTH)) {
-                            val parts = line!!.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                            val parts = line.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                             if (parts.size == 2) {
                                 return parts[1].trim { it <= ' ' }.toInt()
                             }

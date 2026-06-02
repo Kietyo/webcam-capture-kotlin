@@ -66,7 +66,7 @@ class AdaptiveSizeWriter(@field:Volatile private var size: Int) {
     fun setSize(size: Int) {
         if (this.size != size) {
             this.size = size
-            quality = AdaptiveSizeWriter.Companion.INITIAL_QUALITY
+            quality = AdaptiveSizeWriter.INITIAL_QUALITY
         }
     }
 

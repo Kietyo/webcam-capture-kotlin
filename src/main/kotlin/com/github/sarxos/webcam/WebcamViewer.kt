@@ -68,7 +68,7 @@ class WebcamViewer : JFrame(), Runnable, WebcamListener, WindowListener, Thread.
 
     override fun windowActivated(e: WindowEvent) {}
     override fun windowClosed(e: WindowEvent) {
-        webcam!!.close()
+        webcam.close()
     }
 
     override fun windowClosing(e: WindowEvent) {}
@@ -99,7 +99,7 @@ class WebcamViewer : JFrame(), Runnable, WebcamListener, WindowListener, Thread.
         webcam = e.item as Webcam
         webcam.viewSize = WebcamResolution.VGA.size
         webcam.addWebcamListener(this)
-        println("selected " + webcam!!.name)
+        println("selected " + webcam.name)
         panel = WebcamPanel(webcam, false)
         add(panel, BorderLayout.CENTER)
         val t: Thread = object : Thread() {

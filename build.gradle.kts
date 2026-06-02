@@ -28,16 +28,12 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 }
 
+kotlin {
+    jvmToolchain(18)
+}
+
 tasks.test {
     useJUnitPlatform()
-}
-
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(8))
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
 }
 
 //jar {

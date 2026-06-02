@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -i \"\\\\.kt$\")",
+      "Bash(ls -la /c/Users/kietm/Github/webcam-capture-kotlin/src/main/kotlin/com/github/sarxos/webcam/*.kt)"
+    ]
+  }
+}
