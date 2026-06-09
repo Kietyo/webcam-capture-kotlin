@@ -47,7 +47,7 @@ class WebcamUpdater(webcam: Webcam, delayCalculator: DelayCalculator?) : Runnabl
             // we would like to. In such case just run with no delay,
             // so maximum FPS will be the one supported
             // by camera device in the moment.
-            return Math.max(1000 / TARGET_FPS - snapshotDuration, 0)
+            return (1000 / TARGET_FPS - snapshotDuration).coerceAtLeast(0)
         }
     }
 

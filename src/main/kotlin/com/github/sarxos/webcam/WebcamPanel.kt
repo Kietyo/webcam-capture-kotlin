@@ -87,7 +87,7 @@ class WebcamPanel @JvmOverloads constructor(
          * @param panel the webcam panel to paint on
          * @param g2 the graphics 2D object used for drawing
          */
-        fun paintPanel(panel: WebcamPanel?, g2: Graphics2D?)
+        fun paintPanel(panel: WebcamPanel, g2: Graphics2D)
 
         /**
          * Paint webcam image in panel.
@@ -96,7 +96,7 @@ class WebcamPanel @JvmOverloads constructor(
          * @param image the image from webcam
          * @param g2 the graphics 2D object used for drawing
          */
-        fun paintImage(panel: WebcamPanel?, image: BufferedImage?, g2: Graphics2D?)
+        fun paintImage(panel: WebcamPanel, image: BufferedImage, g2: Graphics2D)
     }
 
     /**
@@ -120,66 +120,67 @@ class WebcamPanel @JvmOverloads constructor(
          * Buffered image resized to fit into panel drawing area.
          */
         private var resizedImage: BufferedImage? = null
-        override fun paintPanel(panel: WebcamPanel?, g2: Graphics2D?) {
-            assert(panel != null)
-            assert(g2 != null)
-            val antialiasing = g2!!.getRenderingHint(RenderingHints.KEY_ANTIALIASING)
+        override fun paintPanel(panel: WebcamPanel, g2: Graphics2D) {
+            val antialiasing = g2.getRenderingHint(RenderingHints.KEY_ANTIALIASING)
             g2.setRenderingHint(
                 RenderingHints.KEY_ANTIALIASING,
                 if (isAntialiasingEnabled) RenderingHints.VALUE_ANTIALIAS_ON else RenderingHints.VALUE_ANTIALIAS_OFF
             )
+
+            // Background
             g2.background = Color.BLACK
             g2.fillRect(0, 0, width, height)
+
+            // Camera icon
             val cx = (width - 70) / 2
             val cy = (height - 40) / 2
+            drawCameraIcon(g2, cx, cy)
+
+            // X marks across panel
+            g2.color = Color.DARK_GRAY
+            g2.stroke = BasicStroke(3f)
+            g2.drawLine(0, 0, width, height)
+            g2.drawLine(0, height, width, 0)
+
+            // Status and device name text
+            val statusText = when {
+                isErrored -> rb!!.getString("DEVICE_ERROR")
+                isStarting -> rb!!.getString("INITIALIZING_DEVICE")
+                else -> rb!!.getString("NO_IMAGE")
+            }
+            val deviceName = name ?: webcam.name.also { name = it }
+            val metrics = g2.getFontMetrics(font)
+            g2.font = font
+            g2.color = Color.WHITE
+            g2.drawString(statusText, (width - metrics.stringWidth(statusText)) / 2, cy - metrics.height)
+            g2.drawString(deviceName, (width - metrics.stringWidth(deviceName)) / 2, cy - 2 * metrics.height)
+
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, antialiasing)
+        }
+
+        private fun drawCameraIcon(g2: Graphics2D, cx: Int, cy: Int) {
             g2.stroke = BasicStroke(2f)
+
+            // Camera body
             g2.color = Color.LIGHT_GRAY
             g2.fillRoundRect(cx, cy, 70, 40, 10, 10)
+
+            // Lens rings
             g2.color = Color.WHITE
             g2.fillOval(cx + 5, cy + 5, 30, 30)
             g2.color = Color.LIGHT_GRAY
             g2.fillOval(cx + 10, cy + 10, 20, 20)
             g2.color = Color.WHITE
             g2.fillOval(cx + 12, cy + 12, 16, 16)
+
+            // Viewfinder and grip lines
             g2.fillRoundRect(cx + 50, cy + 5, 15, 10, 5, 5)
             g2.fillRect(cx + 63, cy + 25, 7, 2)
             g2.fillRect(cx + 63, cy + 28, 7, 2)
             g2.fillRect(cx + 63, cy + 31, 7, 2)
-            g2.color = Color.DARK_GRAY
-            g2.stroke = BasicStroke(3f)
-            g2.drawLine(0, 0, width, height)
-            g2.drawLine(0, height, width, 0)
-            var str: String?
-            val strInitDevice = rb!!.getString("INITIALIZING_DEVICE")
-            val strNoImage = rb!!.getString("NO_IMAGE")
-            val strDeviceError = rb!!.getString("DEVICE_ERROR")
-            str = if (isErrored) {
-                strDeviceError
-            } else {
-                if (isStarting) strInitDevice else strNoImage
-            }
-            val metrics = g2.getFontMetrics(font)
-            var w = metrics.stringWidth(str)
-            var h = metrics.height
-            val x = (width - w) / 2
-            val y = cy - h
-            g2.font = font
-            g2.color = Color.WHITE
-            g2.drawString(str, x, y)
-            if (name == null) {
-                name = webcam.name
-            }
-            str = name
-            w = metrics.stringWidth(str)
-            h = metrics.height
-            g2.drawString(str, (width - w) / 2, cy - 2 * h)
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, antialiasing)
         }
 
-        override fun paintImage(panel: WebcamPanel?, image: BufferedImage?, g2: Graphics2D?) {
-            assert(panel != null)
-            assert(image != null)
-            assert(g2 != null)
+        override fun paintImage(panel: WebcamPanel, image: BufferedImage, g2: Graphics2D) {
             val pw = width
             val ph = height
             val iw = image!!.width
@@ -220,18 +221,25 @@ class WebcamPanel @JvmOverloads constructor(
                     y = dy.toInt()
                 }
             }
-            if (resizedImage != null) {
-                resizedImage!!.flush()
-            }
-            if (w == image.width && h == image.height && !isMirrored) {
+            if (w == iw && h == ih && !isMirrored) {
+                // No transformation needed — point directly at the webcam image.
+                // Flush any previously owned buffer but leave the webcam image alone.
+                if (resizedImage != null && resizedImage !== image) resizedImage!!.flush()
                 resizedImage = image
             } else {
-                val genv = GraphicsEnvironment.getLocalGraphicsEnvironment()
-                val gc = genv.defaultScreenDevice.defaultConfiguration
-                var gr: Graphics2D? = null
-                try {
+                // Reuse the off-screen buffer when the panel dimensions haven't changed.
+                // Avoiding createCompatibleImage every frame keeps the managed surface
+                // alive in VRAM so the final drawImage(resizedImage) stays GPU-accelerated.
+                val needsNewBuffer = resizedImage == null || resizedImage === image ||
+                    resizedImage!!.width != pw || resizedImage!!.height != ph
+                if (needsNewBuffer) {
+                    if (resizedImage !== image) resizedImage?.flush()
+                    val gc = GraphicsEnvironment.getLocalGraphicsEnvironment()
+                        .defaultScreenDevice.defaultConfiguration
                     resizedImage = gc.createCompatibleImage(pw, ph)
-                    gr = resizedImage!!.createGraphics()
+                }
+                val gr = resizedImage!!.createGraphics()
+                try {
                     gr.composite = AlphaComposite.Src
                     for ((key, value) in imageRenderingHints) {
                         gr.setRenderingHint(key, value)
@@ -239,32 +247,15 @@ class WebcamPanel @JvmOverloads constructor(
                     gr.background = Color.BLACK
                     gr.color = Color.BLACK
                     gr.fillRect(0, 0, pw, ph)
-                    val sx1: Int
-                    val sx2: Int
-                    val sy1: Int
-                    val sy2: Int // source rectangle coordinates
-                    val dx1: Int
-                    val dx2: Int
-                    val dy1: Int
-                    val dy2: Int // destination rectangle coordinates
-                    dx1 = x
-                    dy1 = y
-                    dx2 = x + w
-                    dy2 = y + h
+                    // Use an AffineTransform for mirroring instead of swapped source
+                    // coordinates — the standard blit path is better optimized for it.
                     if (isMirrored) {
-                        sx1 = iw
-                        sy1 = 0
-                        sx2 = 0
-                        sy2 = ih
-                    } else {
-                        sx1 = 0
-                        sy1 = 0
-                        sx2 = iw
-                        sy2 = ih
+                        gr.translate(pw.toDouble(), 0.0)
+                        gr.scale(-1.0, 1.0)
                     }
-                    gr.drawImage(image, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, null)
+                    gr.drawImage(image, x, y, x + w, y + h, 0, 0, iw, ih, null)
                 } finally {
-                    gr?.dispose()
+                    gr.dispose()
                 }
             }
             g2.drawImage(resizedImage, 0, 0, null)
@@ -359,8 +350,6 @@ class WebcamPanel @JvmOverloads constructor(
     private inner class ImageUpdater : Runnable {
         /**
          * Repaint scheduler schedule panel updates.
-         *
-         * @author Bartosz Firyn (sarxos)
          */
         private inner class RepaintScheduler : Thread() {
             /**
@@ -750,7 +739,7 @@ class WebcamPanel @JvmOverloads constructor(
         if (image == null) {
             painter.paintPanel(this, g as Graphics2D)
         } else {
-            painter.paintImage(this, image, g as Graphics2D)
+            painter.paintImage(this, image!!, g as Graphics2D)
         }
     }
 
