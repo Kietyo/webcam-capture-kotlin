@@ -508,16 +508,14 @@ class Webcam(private val device: WebcamDevice) {
             if (!isReady) {
                 return null
             }
-            val t1: Long
-            val t2: Long
             return if (asynchronous) {
                 updater!!.getImage()
             } else {
 
                 // get image
-                t1 = System.currentTimeMillis()
+                val t1 = System.currentTimeMillis()
                 val image = transform(WebcamGetImageTask(driver, device).image)
-                t2 = System.currentTimeMillis()
+                val t2 = System.currentTimeMillis()
                 if (image == null) {
                     return null
                 }
@@ -544,8 +542,6 @@ class Webcam(private val device: WebcamDevice) {
         } else {
             fps
         }// some devices can support direct image buffers, and for those call
-
-
 
     // processor task, and for those which does not support direct image
     // buffers, just convert image to RGB byte array
